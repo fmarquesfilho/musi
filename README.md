@@ -17,8 +17,6 @@ Cada componente pode ser lido e construído de forma independente, conforme a
 
 ## O que o MUSI responde
 
-> *"Quero ouvir gravações em ijexá, dos anos 60, que não sejam de axé."*
-
 Serviços de streaming costumam organizar o acervo por gênero comercial e por comportamento
 de escuta. São critérios simples de medir, mas deixam de fora boa parte do que caracteriza
 uma gravação.
