@@ -9,21 +9,21 @@
 # :api depende do modulo :shared. Ver o `dockerContext` em render.yaml.
 
 # --------------------------------------------------------------------------
-FROM gradle:8.14-jdk25 AS build
+FROM eclipse-temurin:25-jdk-alpine AS build
 WORKDIR /build
 
 # Copiar so os arquivos de build primeiro faz o Docker reaproveitar a camada de
 # dependencias quando apenas o codigo muda.
-COPY settings.gradle.kts build.gradle.kts gradle.properties ./
+COPY gradlew settings.gradle.kts build.gradle.kts gradle.properties ./
 COPY gradle ./gradle
 COPY shared/build.gradle.kts ./shared/
-COPY api/build.gradle.kts ./api/
+COPY api-ktor/build.gradle.kts ./api-ktor/
 COPY app/build.gradle.kts ./app/
-RUN gradle --no-daemon :api:dependencies || true
+RUN ./gradlew --no-daemon :api-ktor:dependencies || true
 
 COPY shared ./shared
-COPY api ./api
-RUN gradle --no-daemon :api:installDist -x test
+COPY api-ktor ./api-ktor
+RUN ./gradlew --no-daemon :api-ktor:installDist -x test
 
 # --------------------------------------------------------------------------
 FROM eclipse-temurin:25-jre-alpine
@@ -33,7 +33,7 @@ WORKDIR /app
 RUN addgroup -S musi && adduser -S musi -G musi
 USER musi
 
-COPY --from=build /build/api/build/install/api/ ./
+COPY --from=build /build/api-ktor/build/install/api-ktor/ ./
 
 # Ajuste para 512 MB e 0.1 CPU:
 #   MaxRAMPercentage   - a JVM enxerga o limite do container
@@ -46,4 +46,4 @@ COPY --from=build /build/api/build/install/api/ ./
 ENV JAVA_TOOL_OPTIONS="-Xmx300m -Xms150m -XX:TieredStopAtLevel=1 -XX:+UseSerialGC"
 
 EXPOSE 8080
-ENTRYPOINT ["./bin/api"]
+ENTRYPOINT ["./bin/api-ktor"]

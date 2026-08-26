@@ -2,15 +2,6 @@
 
 Enciclopédia musical com metadados extensíveis e padrões abertos.
 
-Projeto-escola usado como exemplo em três disciplinas do Bacharelado em Engenharia de
-Software da UFRN/DIMAp, em 2026.2. **Monorepo**: um domínio só, componentes separados.
-
-> **MUSI** é uma versão didática e simplificada do
-> [PONTEIO](https://github.com/ponteio/ponteio-docs), projeto de pesquisa em curadoria de
-> patrimônio cultural. O nome é curto para facilitar o uso no dia a dia.
-
----
-
 ## Comece por aqui, conforme a sua disciplina
 
 | Se você cursa | Vá para | Ignore o resto |
