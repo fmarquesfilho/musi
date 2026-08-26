@@ -1,0 +1,58 @@
+{
+  "name": "MUSI — Kotlin, Java e Go",
+
+  "//": [
+    "Ambiente identico para todo mundo, no navegador ou no VS Code local.",
+    "",
+    "GitHub Codespaces: botao `Code` -> `Codespaces` -> `Create codespace`.",
+    "Localmente: VS Code + extensao Dev Containers + Docker Desktop.",
+    "",
+    "Nada precisa ser instalado na maquina do laboratorio."
+  ],
+
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "25",
+      "jdkDistro": "tem",
+      "installGradle": true,
+      "gradleVersion": "8.14",
+      "installMaven": true,
+      "mavenVersion": "3.9.9"
+    },
+    "ghcr.io/devcontainers/features/go:1": { "version": "1.25" },
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  "postCreateCommand": "pip install -r requirements-dev.txt && chmod +x verificar.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "fwcd.kotlin",
+        "redhat.java",
+        "redhat.vscode-quarkus",
+        "golang.go",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "java.configuration.runtimes": [
+          { "name": "JavaSE-25", "path": "/usr/local/sdkman/candidates/java/current", "default": true }
+        ],
+        "files.eol": "\n"
+      }
+    }
+  },
+
+  "forwardPorts": [8080, 8081, 9090],
+  "portsAttributes": {
+    "8080": { "label": "api-ktor" },
+    "8081": { "label": "api-quarkus" },
+    "9090": { "label": "services/busca" }
+  },
+
+  "remoteUser": "vscode"
+}

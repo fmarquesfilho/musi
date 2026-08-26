@@ -1,0 +1,61 @@
+{
+  "exemploDidatico": true,
+  "_nota": "Obras e artistas sao reais e de conhecimento geral. As FACETAS foram atribuidas para o exercicio e nao sao anotacao de nenhum curador. Ver ADR-0002.",
+
+  "obras": [
+    {
+      "id": "obra-01",
+      "titulo": "Ponteio",
+      "artista": "Edu Lobo",
+      "ano": 1967,
+      "facetas": [
+        { "dimensao": "genero",    "valor": "mpb" },
+        { "dimensao": "ritmo",     "valor": "ponteio" },
+        { "dimensao": "movimento", "valor": "festivais-da-cancao" }
+      ]
+    },
+    {
+      "id": "obra-02",
+      "titulo": "Beira Mar",
+      "artista": "Gilberto Gil",
+      "ano": 1969,
+      "facetas": [
+        { "dimensao": "genero",    "valor": "mpb" },
+        { "dimensao": "ritmo",     "valor": "ijexa" },
+        { "dimensao": "movimento", "valor": "tropicalia" }
+      ]
+    },
+    {
+      "id": "obra-03",
+      "titulo": "Asa Branca",
+      "artista": "Luiz Gonzaga",
+      "ano": 1947,
+      "facetas": [
+        { "dimensao": "genero",         "valor": "forro" },
+        { "dimensao": "ritmo",          "valor": "baiao" },
+        { "dimensao": "instrumentacao", "valor": "sanfona" }
+      ]
+    },
+    {
+      "id": "obra-04",
+      "titulo": "Rio Grande",
+      "artista": "Chico Science & Nacao Zumbi",
+      "ano": 1994,
+      "facetas": [
+        { "dimensao": "ritmo",     "valor": "maracatu" },
+        { "dimensao": "movimento", "valor": "manguebeat" },
+        { "dimensao": "regiao",    "valor": "recife" }
+      ]
+    },
+    {
+      "id": "obra-05",
+      "titulo": "Refazenda",
+      "artista": "Gilberto Gil",
+      "ano": 1975,
+      "facetas": [
+        { "dimensao": "genero", "valor": "mpb" },
+        { "dimensao": "ritmo",  "valor": "baiao" }
+      ]
+    }
+  ]
+}

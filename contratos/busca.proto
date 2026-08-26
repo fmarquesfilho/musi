@@ -1,0 +1,117 @@
+// Contrato gRPC entre a api (Kotlin) e o servico de busca (Go).
+//
+// DIM0547 - Desenvolvimento Web II.
+//
+// >>> ESTE ARQUIVO ENTRA EM VIGOR NA SPRINT 2. <<<
+//
+// Ate la, a api fala com o servico Go por HTTP e JSON, usando os schemas de
+// contratos/. gRPC e Protobuf sao conteudo da Sprint 2, e o arquivo esta aqui
+// para que voces vejam para onde o contrato vai - nao para ser usado agora.
+// Verificado no CI por `buf lint` e `buf breaking`.
+// Os stubs de Java e de Go sao GERADOS a partir deste arquivo, nunca escritos a mao.
+//
+// Ver docs/decisoes/0002-modelo-de-dominio.md.
+
+syntax = "proto3";
+
+package musi.busca.v1;
+
+option go_package = "github.com/fmarquesfilho/musi/services/busca/pb;pb";
+option java_package = "br.ufrn.musi.busca.v1";
+option java_multiple_files = true;
+
+// ---------------------------------------------------------------------------
+// Dominio
+// ---------------------------------------------------------------------------
+
+// Um par (dimensao, valor). A lista de dimensoes nao e fixa - ADR-0002.
+// Por isso dimensao e string, e nao enum: um enum precisaria ser sincronizado
+// entre tres linguagens a cada dimensao nova.
+message Faceta {
+  string dimensao = 1;
+  string valor    = 2;
+}
+
+message Obra {
+  string id              = 1;
+  string titulo          = 2;
+  string artista         = 3;
+  int32  ano             = 4;
+  repeated Faceta facetas = 5;
+}
+
+// ---------------------------------------------------------------------------
+// O filtro, como arvore
+// ---------------------------------------------------------------------------
+
+// Protobuf nao tem uniao etiquetada como Kotlin ou Java 21.
+// O equivalente idiomatico e `oneof`: exatamente um campo esta preenchido.
+//
+// Vale notar a diferenca em relacao ao Kotlin:
+//   - Kotlin: `when` sobre sealed interface e exaustivo, verificado na compilacao
+//   - Protobuf: o codigo gerado tem um enum de caso, e deixar um caso de fora compila
+//
+// Essa comparacao faz parte do conteudo da disciplina. Ver ADR-0002.
+message Filtro {
+  oneof criterio {
+    Tem    tem    = 1;
+    Ou     ou     = 2;
+    E      e      = 3;
+    Exceto exceto = 4;
+    Ate    ate    = 5;
+  }
+}
+
+message Tem {
+  string dimensao = 1;
+  string valor    = 2;
+}
+
+message Ou {
+  repeated Filtro opcoes = 1;
+}
+
+message E {
+  repeated Filtro exigencias = 1;
+}
+
+message Exceto {
+  Filtro filtro = 1;
+}
+
+message Ate {
+  int32 ano = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Servico
+// ---------------------------------------------------------------------------
+
+message BuscarRequest {
+  Filtro filtro = 1;
+
+  // A ordenacao e sempre declarada por quem consulta - ADR-0002.
+  // Nao ha ordem "por relevancia": sem criterio declarado, a ordenacao deixaria
+  // de refletir a escolha de quem consulta.
+  Ordenacao ordenacao = 2;
+
+  int32 limite  = 3;
+  int32 deslocamento = 4;
+}
+
+enum Ordenacao {
+  ORDENACAO_NAO_ESPECIFICADA = 0;
+  ORDENACAO_TITULO           = 1;
+  ORDENACAO_ARTISTA          = 2;
+  ORDENACAO_ANO_CRESCENTE    = 3;
+  ORDENACAO_ANO_DECRESCENTE  = 4;
+}
+
+message BuscarResponse {
+  repeated Obra obras = 1;
+  int32 total = 2;
+}
+
+service Busca {
+  rpc Buscar(BuscarRequest) returns (BuscarResponse);
+}

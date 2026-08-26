@@ -1,0 +1,249 @@
+# =============================================================================
+# MUSI — integração contínua
+# =============================================================================
+#
+# TRÊS stacks no mesmo repositório: Kotlin, Java e Go.
+# Um arquivo, um job por componente. Ver docs/decisoes/0006-ci-por-componente.md.
+#
+# COMO LER, conforme a sua disciplina:
+#   DIM0510 (Processos)  → o job `docs` e a seção `on:`
+#   DIM0547 (Web II)     → `contratos`, `kotlin`, `java` e `go`
+#   DIM0524 (Móveis)     → `contratos` e `kotlin`
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+
+  # ===========================================================================
+  # BUILD — os três stacks, em TODO push e PR, sem filtro de caminho
+  # ===========================================================================
+  #
+  # Rápido porque não roda testes. É o portão de qualidade: um filtro de caminho
+  # aqui deixaria passar uma quebra em componente não tocado.
+  # ---------------------------------------------------------------------------
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/go.mod
+
+      - name: Kotlin
+        run: gradle :shared:build :api-ktor:build :app:build -x test
+
+      - name: Java
+        working-directory: api-quarkus
+        run: mvn -B -ntp package -DskipTests
+
+      - name: Go
+        working-directory: services
+        run: go build ./...
+
+  # ===========================================================================
+  # CONTRATOS — a fonte da verdade do domínio
+  # ===========================================================================
+  #
+  # Valida os exemplos contra os schemas, e roda a implementação de referência.
+  # O exemplo marcado INVALIDO precisa ser REJEITADO: um schema que aceita
+  # qualquer entrada não cumpre sua função.
+  # ---------------------------------------------------------------------------
+  contratos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: python contratos/validar.py
+
+  # ===========================================================================
+  # KOTLIN — shared, api-ktor e app     → DIM0547 e DIM0524
+  # ===========================================================================
+  #
+  # O módulo `shared` contém o domínio, importado por `app`. Seu `commonMain`
+  # não tem acesso a Ktor, Koin nem Compose: o compilador do módulo
+  # multiplataforma garante a regra de dependência.
+  # ---------------------------------------------------------------------------
+  kotlin:
+    needs: contratos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+
+      - name: Testes
+        run: gradle :shared:jvmTest :api-ktor:test :app:jvmTest
+
+      # A partir da Sprint 1:
+      # - run: gradle ktlintCheck detekt
+
+      - name: Imagem Docker da api-ktor
+        uses: docker/build-push-action@v6
+        with:
+          context: .                     # a raiz: :api-ktor depende de :shared
+          file: ./api-ktor/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ===========================================================================
+  # JAVA — api-quarkus                  → DIM0547
+  # ===========================================================================
+  #
+  # O domínio em Java é uma REESCRITA do domínio Kotlin, deliberadamente — ver
+  # ADR-0010. Os testes deste job rodam os MESMOS casos de contratos/exemplos/
+  # que o job `kotlin`. Se os dois discordarem, uma implementação está errada.
+  # ---------------------------------------------------------------------------
+  java:
+    needs: contratos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Testes
+        working-directory: api-quarkus
+        run: mvn -B -ntp test
+
+      # A partir da Sprint 1: ArchUnit verifica a regra de dependência.
+      #   "nenhuma classe de ..dominio.. depende de ..adaptadores.. nem de io.quarkus"
+
+      - name: Imagem Docker da api-quarkus
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api-quarkus
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ===========================================================================
+  # GO — services/busca                 → DIM0547
+  # ===========================================================================
+  go:
+    needs: contratos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/go.mod
+
+      - name: Formatação
+        working-directory: services
+        run: |
+          fora=$(gofmt -l .)
+          if [ -n "$fora" ]; then
+            echo "::error::Arquivos fora do padrão gofmt:"; echo "$fora"; exit 1
+          fi
+
+      - name: Vet
+        working-directory: services
+        run: go vet ./...
+
+      - name: Testes
+        working-directory: services
+        run: go test -race ./...
+
+      - name: Imagem Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ===========================================================================
+  # DOCS — documentação e processo       → DIM0510
+  # ===========================================================================
+  #
+  # Documentação também tem CI: uma ADR fora do índice ou um link quebrado são
+  # defeitos, detectados no pipeline em vez de na leitura de alguém meses depois.
+  # ---------------------------------------------------------------------------
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+
+      - name: Toda ADR está no índice
+        run: python docs/verificar_adrs.py
+
+      - name: Links internos não quebrados
+        run: python docs/verificar_links.py
+
+      # ADR-0004 — nenhum escalar de qualidade no modelo.
+      # Verificação simples por opção: cobre os casos comuns e falha rápido.
+      # Vale discutir em aula quais situações ela não alcança.
+      - name: Nenhum escalar de qualidade (ADR-0004)
+        run: |
+          if grep -rEni --include='*.kt' --include='*.java' --include='*.go' \
+               --include='*.proto' --include='*.json' \
+               '\b(score|rating|relevance|popularity|ranking)\b' \
+               shared api-ktor api-quarkus app services contratos 2>/dev/null; then
+            echo "::error::Escalar de qualidade encontrado. Ver docs/decisoes/0004-sem-ranking.md"
+            exit 1
+          fi
+          echo "OK: nenhum escalar de qualidade encontrado."
+
+  # ===========================================================================
+  # CI — o job que a proteção de branch exige
+  # ===========================================================================
+  ci:
+    needs: [build, contratos, kotlin, java, go, docs]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar resultados
+        run: |
+          resultados="${{ join(needs.*.result, ' ') }}"
+          echo "Resultados: $resultados"
+          for r in $resultados; do
+            if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then
+              echo "::error::Ao menos um job falhou."; exit 1
+            fi
+          done
+          echo "Tudo certo."

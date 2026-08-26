@@ -1,0 +1,12 @@
+{
+  "exemploDidatico": true,
+  "_nota": "invalido DE PROPOSITO. O CI verifica que este arquivo e rejeitado pelo obra.schema.json. Viola a convencao de escrita da ADR-0002: 'MPB' em maiuscula e 'Ritmo' com maiuscula nao casam com nada na busca. Um schema que aceita tudo nao verifica nada.",
+
+  "id": "obra-99",
+  "titulo": "Exemplo invalido",
+  "artista": "Ninguem",
+  "ano": 2026,
+  "facetas": [
+    { "dimensao": "Ritmo", "valor": "MPB" }
+  ]
+}

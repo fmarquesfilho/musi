@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ufrn.br/musi/contratos/filtro.schema.json",
+  "title": "Filtro",
+  "versao": "1.0.0",
+  "description": "Arvore de criterios de busca. Ver ADR-0002.",
+  "$ref": "#/$defs/filtro",
+
+  "$defs": {
+    "filtro": {
+      "type": "object",
+      "required": ["tipo"],
+      "oneOf": [
+        { "$ref": "#/$defs/tem" },
+        { "$ref": "#/$defs/ou" },
+        { "$ref": "#/$defs/e" },
+        { "$ref": "#/$defs/exceto" },
+        { "$ref": "#/$defs/ate" }
+      ]
+    },
+    "tem": {
+      "properties": {
+        "tipo":     { "const": "tem" },
+        "dimensao": { "type": "string" },
+        "valor":    { "type": "string" }
+      },
+      "required": ["tipo", "dimensao", "valor"],
+      "additionalProperties": false
+    },
+    "ou": {
+      "properties": {
+        "tipo":   { "const": "ou" },
+        "opcoes": { "type": "array", "items": { "$ref": "#/$defs/filtro" } }
+      },
+      "required": ["tipo", "opcoes"],
+      "additionalProperties": false
+    },
+    "e": {
+      "properties": {
+        "tipo":       { "const": "e" },
+        "exigencias": { "type": "array", "items": { "$ref": "#/$defs/filtro" } }
+      },
+      "required": ["tipo", "exigencias"],
+      "additionalProperties": false
+    },
+    "exceto": {
+      "properties": {
+        "tipo":   { "const": "exceto" },
+        "filtro": { "$ref": "#/$defs/filtro" }
+      },
+      "required": ["tipo", "filtro"],
+      "additionalProperties": false
+    },
+    "ate": {
+      "properties": {
+        "tipo": { "const": "ate" },
+        "ano":  { "type": "integer" }
+      },
+      "required": ["tipo", "ano"],
+      "additionalProperties": false
+    }
+  }
+}

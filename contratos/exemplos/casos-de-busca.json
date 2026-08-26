@@ -1,0 +1,67 @@
+{
+  "exemploDidatico": true,
+  "_nota": "Casos de teste COMPARTILHADOS. app (Kotlin), api (Java) e services (Go) rodam os mesmos casos e devem produzir o mesmo resultado. Se discordarem, uma implementacao esta errada.",
+
+  "casos": [
+    {
+      "nome": "faceta simples",
+      "filtro": { "tipo": "tem", "dimensao": "ritmo", "valor": "baiao" },
+      "esperado": ["obra-03", "obra-05"]
+    },
+    {
+      "nome": "disjuncao de ritmos",
+      "filtro": {
+        "tipo": "ou",
+        "opcoes": [
+          { "tipo": "tem", "dimensao": "ritmo", "valor": "ijexa" },
+          { "tipo": "tem", "dimensao": "ritmo", "valor": "maracatu" }
+        ]
+      },
+      "esperado": ["obra-02", "obra-04"]
+    },
+    {
+      "nome": "conjuncao com exclusao",
+      "filtro": {
+        "tipo": "e",
+        "exigencias": [
+          { "tipo": "tem", "dimensao": "genero", "valor": "mpb" },
+          { "tipo": "exceto", "filtro": { "tipo": "tem", "dimensao": "ritmo", "valor": "ijexa" } }
+        ]
+      },
+      "esperado": ["obra-01", "obra-05"]
+    },
+    {
+      "nome": "tres niveis com corte por ano",
+      "filtro": {
+        "tipo": "e",
+        "exigencias": [
+          {
+            "tipo": "ou",
+            "opcoes": [
+              { "tipo": "tem", "dimensao": "movimento", "valor": "tropicalia" },
+              { "tipo": "tem", "dimensao": "movimento", "valor": "festivais-da-cancao" }
+            ]
+          },
+          { "tipo": "ate", "ano": 1968 },
+          { "tipo": "exceto", "filtro": { "tipo": "tem", "dimensao": "ritmo", "valor": "ijexa" } }
+        ]
+      },
+      "esperado": ["obra-01"]
+    },
+    {
+      "nome": "disjuncao vazia nao aceita nada",
+      "filtro": { "tipo": "ou", "opcoes": [] },
+      "esperado": []
+    },
+    {
+      "nome": "conjuncao vazia aceita tudo",
+      "filtro": { "tipo": "e", "exigencias": [] },
+      "esperado": ["obra-01", "obra-02", "obra-03", "obra-04", "obra-05"]
+    },
+    {
+      "nome": "dimensao inexistente nao casa",
+      "filtro": { "tipo": "tem", "dimensao": "afinacao", "valor": "aberta" },
+      "esperado": []
+    }
+  ]
+}

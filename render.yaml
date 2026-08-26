@@ -1,0 +1,60 @@
+# MUSI - infraestrutura como codigo, para o Render.
+
+services:
+  # -------------------------------------------------------------------------
+  # api-ktor - Kotlin
+  # -------------------------------------------------------------------------
+  - type: web
+    name: musi-api-ktor
+    runtime: docker
+    plan: free
+    region: oregon
+    # O contexto e a RAIZ, porque :api-ktor depende do modulo :shared.
+    dockerfilePath: ./api-ktor/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: MUSI_BUSCA_URL
+        sync: false          # ex.: https://musi-busca.onrender.com
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx300m -Xms150m"
+      - key: DATABASE_URL    # Sprint 2, string de conexao do Neon
+        sync: false
+
+  # -------------------------------------------------------------------------
+  # api-quarkus - Java
+  # -------------------------------------------------------------------------
+  - type: web
+    name: musi-api-quarkus
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./api-quarkus
+    healthCheckPath: /q/health      # vem da extensao smallrye-health
+    autoDeployTrigger: commit
+    envVars:
+      - key: MUSI_BUSCA_URL
+        sync: false
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xmx300m -Xms150m"
+      - key: DATABASE_URL
+        sync: false
+
+  # -------------------------------------------------------------------------
+  # services/busca - Go
+  # -------------------------------------------------------------------------
+  - type: web
+    name: musi-busca
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./services
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+
+# Limitacao do plano gratuito, e vale dizer aos alunos: o servico hiberna apos
+# 15 minutos sem trafego, e a primeira requisicao depois disso leva cerca de um
+# minuto. E uma simulacao real de cold start em plataforma serverless.

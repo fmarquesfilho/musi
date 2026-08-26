@@ -1,0 +1,37 @@
+# Catalogo de versoes. Uma fonte da verdade para todos os modulos Kotlin.
+[versions]
+java = "25"
+kotlin = "2.4.10"
+compose = "1.12.0"
+ktor = "3.5.2"
+koin = "4.2.2"
+logback = "1.6.3"
+serialization = "1.11.0"
+
+[libraries]
+ktor-server-core        = { module = "io.ktor:ktor-server-core",                version.ref = "ktor" }
+ktor-server-netty       = { module = "io.ktor:ktor-server-netty",               version.ref = "ktor" }
+ktor-server-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-server-statuspages = { module = "io.ktor:ktor-server-status-pages",        version.ref = "ktor" }
+ktor-server-calllogging = { module = "io.ktor:ktor-server-call-logging",        version.ref = "ktor" }
+ktor-server-caching     = { module = "io.ktor:ktor-server-caching-headers",     version.ref = "ktor" }
+ktor-server-conditional = { module = "io.ktor:ktor-server-conditional-headers", version.ref = "ktor" }
+ktor-server-testhost    = { module = "io.ktor:ktor-server-test-host",           version.ref = "ktor" }
+ktor-client-core        = { module = "io.ktor:ktor-client-core",                version.ref = "ktor" }
+ktor-client-cio         = { module = "io.ktor:ktor-client-cio",                 version.ref = "ktor" }
+ktor-client-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-json               = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+kotlinx-serialization   = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+koin-core               = { module = "io.insert-koin:koin-core",                version.ref = "koin" }
+koin-ktor               = { module = "io.insert-koin:koin-ktor",                version.ref = "koin" }
+koin-test               = { module = "io.insert-koin:koin-test",                version.ref = "koin" }
+logback                 = { module = "ch.qos.logback:logback-classic",          version.ref = "logback" }
+
+[plugins]
+kotlin-jvm           = { id = "org.jetbrains.kotlin.jvm",                 version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform",       version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktor                 = { id = "io.ktor.plugin",                           version.ref = "ktor" }
+compose-multiplatform = { id = "org.jetbrains.compose",                  version.ref = "compose" }
+compose-compiler      = { id = "org.jetbrains.kotlin.plugin.compose",    version.ref = "kotlin" }
+versions              = { id = "com.github.ben-manes.versions",          version = "0.53.0" }

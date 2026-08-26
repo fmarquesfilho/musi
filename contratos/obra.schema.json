@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ufrn.br/musi/contratos/obra.schema.json",
+  "title": "Obra",
+  "versao": "1.0.0",
+  "type": "object",
+  "required": ["id", "titulo", "artista", "ano", "facetas"],
+  "properties": {
+    "id":      { "type": "string", "minLength": 1 },
+    "titulo":  { "type": "string", "minLength": 1 },
+    "artista": { "type": "string", "minLength": 1 },
+    "ano":     { "type": "integer", "minimum": 1877, "maximum": 2100 },
+    "facetas": { "type": "array", "items": { "$ref": "#/$defs/faceta" } }
+  },
+  "additionalProperties": false,
+
+  "$defs": {
+    "faceta": {
+      "type": "object",
+      "required": ["dimensao", "valor"],
+      "properties": {
+        "dimensao": { "$ref": "#/$defs/termo" },
+        "valor":    { "$ref": "#/$defs/termo" }
+      },
+      "additionalProperties": false
+    },
+    "termo": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Minúsculas, sem acento, com hífen. Ver docs/GLOSSARIO.md e ADR-0002."
+    }
+  }
+}

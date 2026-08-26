@@ -1,0 +1,160 @@
+# MUSI - versoes e tarefas.
+#
+# `mise` fixa a versao de cada ferramenta e substitui o Makefile.
+# Instalacao: https://mise.jdx.dev/getting-started.html
+#
+# Nada aqui e obrigatorio para acompanhar as aulas: os exercicios rodam em
+# ambientes online. Isto serve para trabalhar localmente e para o CI.
+
+[tools]
+java   = "temurin-25"   # espelha libs.versions.toml -> java
+go     = "1.25"
+gradle = "8.14"
+maven  = "3.9"
+python = "3.12"         # validacao de contratos e verificacao de docs
+
+[env]
+MUSI_BUSCA_URL = "http://localhost:9090"
+
+# ---------------------------------------------------------------------------
+# Verificacao
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# `build` e `test` sao os nomes que a rubrica de DIM0547 verifica.
+# ---------------------------------------------------------------------------
+
+[tasks.setup]
+description = "Instala as dependencias de Python dos scripts de verificacao"
+run = "pip install -r requirements-dev.txt"
+
+[tasks.build]
+description = "Constroi os tres stacks: Kotlin, Java e Go"
+run = [
+  "./gradlew :shared:build :api-ktor:build :app:build -x test",
+  "cd api-quarkus && mvn -B -ntp package -DskipTests",
+  "cd services && go build ./...",
+]
+
+[tasks.test]
+description = "Roda os testes dos dois stacks"
+run = [
+  "./gradlew :shared:jvmTest :api-ktor:test :app:jvmTest",
+  "cd services && go test ./...",
+]
+
+[tasks.verificar]
+description = "Roda tudo que funciona sem configuracao"
+run = "./verificar.sh"
+
+[tasks."test:contratos"]
+description = "Valida schemas e roda os casos de busca compartilhados"
+run = "python contratos/validar.py"
+
+[tasks."test:docs"]
+description = "Verifica ADRs e links internos (DIM0510)"
+run = ["python docs/verificar_adrs.py", "python docs/verificar_links.py"]
+
+[tasks."test:api-ktor"]
+description = "Testes da api em Kotlin (DIM0547)"
+run = "./gradlew :api-ktor:test"
+
+[tasks."test:api-quarkus"]
+description = "Testes da api em Java (DIM0547)"
+dir = "api-quarkus"
+run = "mvn -B -ntp test"
+
+[tasks."test:shared"]
+description = "Testes do dominio compartilhado, usado por api e app"
+run = "./gradlew :shared:jvmTest"
+
+[tasks."test:go"]
+description = "Testes do dominio Go (DIM0547)"
+dir = "services"
+run = "go test -race ./..."
+
+[tasks."test:app"]
+description = "Testes do app (DIM0524)"
+run = "./gradlew :app:jvmTest"
+
+[tasks.ci]
+description = "Reproduz localmente o pipeline do GitHub Actions"
+depends = ["test:contratos", "test:docs", "test:shared", "test:api-ktor", "test:api-quarkus", "test:go", "test:app"]
+
+# ---------------------------------------------------------------------------
+# Qualidade
+# ---------------------------------------------------------------------------
+
+[tasks."lint:go"]
+dir = "services"
+run = ["go vet ./...", "gofmt -l ."]
+
+[tasks."lint:api-ktor"]
+run = "./gradlew :api-ktor:build -x test"
+
+# ---------------------------------------------------------------------------
+# Execucao local
+# ---------------------------------------------------------------------------
+
+[tasks."run:busca"]
+description = "Sobe o servico Go na porta 9090"
+dir = "services"
+run = "go run ./cmd/servidor"
+
+[tasks."run:api-ktor"]
+description = "Sobe a api Kotlin na 8080 (precisa do run:busca em outro terminal)"
+run = "./gradlew :api-ktor:run"
+
+[tasks."run:api-quarkus"]
+description = "Sobe a api Java na 8081, em modo dev com hot reload"
+dir = "api-quarkus"
+run = "mvn -B -ntp quarkus:dev -Dquarkus.http.port=8081"
+
+[tasks.demo]
+description = "Uma busca de exemplo contra a api local"
+run = """
+curl -s "localhost:8080/obras?dimensao=ritmo&valor=baiao" | python -m json.tool
+"""
+
+# ---------------------------------------------------------------------------
+# Atualizacao de versoes
+#
+# Tudo com ferramental nativo, sem servico externo. Ver docs/VERSOES.md.
+# ---------------------------------------------------------------------------
+
+[tasks.desatualizado]
+description = "Lista o que esta atrasado, sem alterar nada"
+run = [
+  "mise outdated",
+  "./gradlew dependencyUpdates",
+  "cd api-quarkus && mvn -B -ntp versions:display-dependency-updates versions:display-plugin-updates",
+  "cd services && go list -m -u all",
+]
+
+[tasks.atualizar]
+description = "Aplica as atualizacoes e roda os testes"
+run = [
+  "mise upgrade",
+  "./gradlew wrapper --gradle-version latest",
+  "cd api-quarkus && mvn -B -ntp versions:use-latest-releases && mvn versions:commit",
+  "cd services && go get -u ./... && go mod tidy",
+  "mise run test",
+]
+
+# ---------------------------------------------------------------------------
+# Docker
+# ---------------------------------------------------------------------------
+
+[tasks."docker:api-ktor"]
+run = "docker build -t musi-api-ktor -f api-ktor/Dockerfile ."  # contexto e a raiz: usa :shared
+
+[tasks."docker:api-quarkus"]
+run = "docker build -t musi-api-quarkus ./api-quarkus"
+
+[tasks."docker:busca"]
+run = "docker build -t musi-busca ./services"
+
+[tasks."docker:tamanhos"]
+description = "Mostra o tamanho das imagens - numero pedido no laboratorio"
+depends = ["docker:api-ktor", "docker:api-quarkus", "docker:busca"]
+run = "docker images musi-api musi-busca --format 'table {{.Repository}}\\t{{.Size}}'"

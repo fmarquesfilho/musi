@@ -1,0 +1,41 @@
+# MUSI - orquestracao local, com Docker Desktop.
+#
+#   docker compose up --build
+#   curl -s "localhost:8080/obras?dimensao=ritmo&valor=baiao" | jq   # Kotlin
+#   curl -s "localhost:8081/obras?dimensao=ritmo&valor=baiao" | jq   # Java
+#
+# As duas APIs sobem juntas, contra o mesmo servico Go.
+#
+# Se voce so quer uma delas:
+#   docker compose up musi-api-ktor musi-busca
+#   docker compose up musi-api-quarkus musi-busca
+
+services:
+  musi-api-ktor:
+    build:
+      context: .                 # a raiz: o modulo :api-ktor depende de :shared
+      dockerfile: api-ktor/Dockerfile
+    ports: ["8080:8080"]
+    environment:
+      MUSI_BUSCA_URL: http://musi-busca:9090
+      JAVA_TOOL_OPTIONS: "-Xmx300m -Xms150m"
+    mem_limit: 512m              # reproduz o limite da instancia onde roda em produção
+    depends_on: [musi-busca]
+
+  musi-api-quarkus:
+    build:
+      context: ./api-quarkus
+    ports: ["8081:8080"]
+    environment:
+      MUSI_BUSCA_URL: http://musi-busca:9090
+      JAVA_TOOL_OPTIONS: "-Xmx300m -Xms150m"
+    mem_limit: 512m
+    depends_on: [musi-busca]
+
+  musi-busca:
+    build:
+      context: ./services
+    ports: ["9090:9090"]
+    environment:
+      PORT: "9090"
+    mem_limit: 256m

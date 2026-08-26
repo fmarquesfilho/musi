@@ -1,0 +1,59 @@
+package br.ufrn.musi.adaptadores.persistencia
+
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+import javax.sql.DataSource
+
+/**
+ * Conexão com o Postgres no Neon — Sprint 2.
+ *
+ * Dois ajustes obrigatórios para o plano gratuito, e os dois têm razão prática:
+ *
+ * 1. POOL PEQUENO. O Neon limita conexões concorrentes no plano gratuito. Um pool
+ *    de 10 conexões, que é o padrão do HikariCP, esgota a cota com uma instância
+ *    só. Três a cinco é o que cabe.
+ *
+ * 2. TIMEOUT GENEROSO NA PRIMEIRA CONEXÃO. O Neon hiberna a computação após
+ *    alguns minutos sem uso, e leva algumas centenas de milissegundos a segundos
+ *    para acordar. O timeout padrão de 30 s do Hikari basta, mas o `validationTimeout`
+ *    curto derruba a primeira tentativa.
+ *
+ * A URL vem inteira do ambiente, com `sslmode=require` — o Neon exige TLS.
+ * Fator III do 12-Factor App: configuração no ambiente, nunca no código.
+ */
+fun dataSourceDoNeon(url: String): DataSource {
+    val config = HikariConfig().apply {
+        jdbcUrl = url
+        driverClassName = "org.postgresql.Driver"
+
+        // Limite do plano gratuito do Neon.
+        maximumPoolSize = 5
+        minimumIdle = 1
+
+        // O Neon acorda a computação sob demanda; a primeira conexão é lenta.
+        connectionTimeout = 30_000
+        validationTimeout = 10_000
+
+        // Devolve conexões ociosas rápido: instância hibernada não deve segurar cota.
+        idleTimeout = 60_000
+        maxLifetime = 300_000
+
+        poolName = "musi-neon"
+    }
+    return HikariDataSource(config)
+}
+
+/**
+ * Converte a URL que o Neon fornece para o formato que o driver JDBC espera.
+ *
+ * O Neon entrega `postgresql://usuario:senha@host/base?sslmode=require`.
+ * O JDBC quer `jdbc:postgresql://host/base?user=...&password=...&sslmode=require`.
+ *
+ * Essa conversão é uma das primeiras coisas que quebram, e o erro não é claro.
+ */
+fun urlJdbcDoNeon(urlDoNeon: String): String {
+    val uri = java.net.URI(urlDoNeon)
+    val (usuario, senha) = uri.userInfo.split(":", limit = 2)
+    val query = uri.query?.let { "&$it" } ?: "&sslmode=require"
+    return "jdbc:postgresql://${uri.host}${uri.path}?user=$usuario&password=$senha$query"
+}
