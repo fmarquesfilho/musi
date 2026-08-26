@@ -47,8 +47,6 @@ jobs:
           cache: maven
 
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.14.3'
 
       - uses: actions/setup-go@v5
         with:
@@ -103,14 +101,15 @@ jobs:
           distribution: temurin
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.14.3'
 
       - name: Testes
         run: gradle :shared:jvmTest :api-ktor:test :app:jvmTest
 
       # A partir da Sprint 1:
       # - run: gradle ktlintCheck detekt
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Imagem Docker da api-ktor
         uses: docker/build-push-action@v6
@@ -147,6 +146,9 @@ jobs:
       # A partir da Sprint 1: ArchUnit verifica a regra de dependência.
       #   "nenhuma classe de ..dominio.. depende de ..adaptadores.. nem de io.quarkus"
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Imagem Docker da api-quarkus
         uses: docker/build-push-action@v6
         with:
@@ -182,6 +184,9 @@ jobs:
       - name: Testes
         working-directory: services
         run: go test -race ./...
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Imagem Docker
         uses: docker/build-push-action@v6
