@@ -84,6 +84,54 @@ jobs:
       - run: python contratos/validar.py
 
   # ===========================================================================
+  # PROTO — contrato gRPC no BSR         → DIM0547
+  # ===========================================================================
+  #
+  # `buf lint` e `buf build` valem já; o *runtime* gRPC é da Sprint 2. O
+  # `buf breaking` compara contra o módulo publicado no BSR (robusto a mover
+  # arquivos), e é tolerante enquanto o módulo ainda não foi publicado. O push
+  # só acontece no `main` e só se o segredo BUF_TOKEN existir.
+  # ---------------------------------------------------------------------------
+  proto:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: 1.71.0
+          github_token: ${{ github.token }}
+
+      - name: Lint
+        run: buf lint
+
+      - name: Build
+        run: buf build
+
+      - name: Compatibilidade (breaking contra o BSR)
+        env:
+          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+        run: |
+          if buf breaking --against "buf.build/fmarquesfilho/busca" 2> breaking.err; then
+            echo "Sem quebras de compatibilidade."
+          elif grep -qiE "does not exist|not found|NotFound|no such module" breaking.err; then
+            echo "::notice::Módulo ainda não publicado no BSR — breaking será verificado após o primeiro 'buf push'."
+          else
+            cat breaking.err >&2
+            exit 1
+          fi
+
+      - name: Publicar no BSR (só no main, se houver BUF_TOKEN)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+        run: |
+          if [ -z "$BUF_TOKEN" ]; then
+            echo "::notice::BUF_TOKEN não configurado; pulando 'buf push'. Ver contratos/README.md."
+            exit 0
+          fi
+          buf push
+
+  # ===========================================================================
   # KOTLIN — shared, api-ktor e app     → DIM0547 e DIM0524
   # ===========================================================================
   #
@@ -238,7 +286,7 @@ jobs:
   # CI — o job que a proteção de branch exige
   # ===========================================================================
   ci:
-    needs: [build, contratos, kotlin, java, go, docs]
+    needs: [build, contratos, proto, kotlin, java, go, docs]
     if: always()
     runs-on: ubuntu-latest
     steps:

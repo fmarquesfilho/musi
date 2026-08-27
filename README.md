@@ -66,9 +66,10 @@ musi/
 │   └── decisoes/    registro de decisões (ADR)
 ├── processo/        backlog, definição de pronto, rituais → DIM0510
 ├── contratos/       o contrato compartilhado           → DIM0547 + DIM0524
-│   ├── busca.proto           Protocol Buffers, entre serviços
+│   ├── musi/busca/v1/busca.proto  Protocol Buffers (BSR), entre serviços
 │   ├── obra.schema.json      JSON Schema, na fronteira HTTP
 │   └── exemplos/             casos de teste comuns aos três componentes
+├── buf.yaml         módulo do contrato gRPC no BSR      → DIM0547
 ├── shared/          o domínio, em Kotlin — usado por api E app
 ├── api-ktor/        Kotlin · Ktor · Koin                → DIM0547
 ├── api-quarkus/     Java 25 · Quarkus · CDI             → DIM0547

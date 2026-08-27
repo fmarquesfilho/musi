@@ -2,13 +2,12 @@
 //
 // DIM0547 - Desenvolvimento Web II.
 //
-// >>> ESTE ARQUIVO ENTRA EM VIGOR NA SPRINT 2. <<<
-//
-// Ate la, a api fala com o servico Go por HTTP e JSON, usando os schemas de
-// contratos/. gRPC e Protobuf sao conteudo da Sprint 2, e o arquivo esta aqui
-// para que voces vejam para onde o contrato vai - nao para ser usado agora.
-// Verificado no CI por `buf lint` e `buf breaking`.
-// Os stubs de Java e de Go sao GERADOS a partir deste arquivo, nunca escritos a mao.
+// O CONTRATO ja vale como fonte da verdade: hospedado no BSR (Buf Schema
+// Registry) e verificado no CI por `buf lint` e `buf breaking`. O que entra em
+// vigor na Sprint 2 eh o runtime gRPC: por ora a api ainda fala com o servico
+// Go por HTTP e JSON, usando os schemas JSON de contratos/. Este arquivo ja
+// mostra para onde o contrato vai, e ja eh tratado como contrato de verdade.
+// Os stubs de Java e de Go sao gerados a partir deste arquivo, nunca escritos a mao.
 //
 // Ver docs/decisoes/0002-modelo-de-dominio.md.
 
@@ -24,7 +23,7 @@ option java_multiple_files = true;
 // Dominio
 // ---------------------------------------------------------------------------
 
-// Um par (dimensao, valor). A lista de dimensoes nao e fixa - ADR-0002.
+// Um par (dimensao, valor). A lista de dimensoes nao eh fixa - ADR-0002.
 // Por isso dimensao e string, e nao enum: um enum precisaria ser sincronizado
 // entre tres linguagens a cada dimensao nova.
 message Faceta {
@@ -41,14 +40,14 @@ message Obra {
 }
 
 // ---------------------------------------------------------------------------
-// O filtro, como arvore
+// O filtro
 // ---------------------------------------------------------------------------
 
-// Protobuf nao tem uniao etiquetada como Kotlin ou Java 21.
+// Protobuf nao tem tagged union como Kotlin ou Java 21.
 // O equivalente idiomatico e `oneof`: exatamente um campo esta preenchido.
 //
 // Vale notar a diferenca em relacao ao Kotlin:
-//   - Kotlin: `when` sobre sealed interface e exaustivo, verificado na compilacao
+//   - Kotlin: `when` sobre sealed interface eh exaustivo, verificado na compilacao
 //   - Protobuf: o codigo gerado tem um enum de caso, e deixar um caso de fora compila
 //
 // Essa comparacao faz parte do conteudo da disciplina. Ver ADR-0002.
@@ -90,7 +89,7 @@ message Ate {
 message BuscarRequest {
   Filtro filtro = 1;
 
-  // A ordenacao e sempre declarada por quem consulta - ADR-0002.
+  // A ordenacao eh sempre declarada por quem consulta - ADR-0002.
   // Nao ha ordem "por relevancia": sem criterio declarado, a ordenacao deixaria
   // de refletir a escolha de quem consulta.
   Ordenacao ordenacao = 2;
@@ -112,6 +111,6 @@ message BuscarResponse {
   int32 total = 2;
 }
 
-service Busca {
+service BuscaService {
   rpc Buscar(BuscarRequest) returns (BuscarResponse);
 }

@@ -1,0 +1,21 @@
+# Configuracao do buf — contrato gRPC do MUSI (DIM0547).
+#
+#   buf lint                         # estilo e consistencia do .proto
+#   buf breaking --against '.git#branch=main'   # nao quebrou o contrato
+#   buf push                         # publica o modulo no BSR (precisa de login)
+#
+# O modulo vive em contratos/, junto dos schemas JSON — "uma pasta, duas
+# fronteiras" (ver contratos/README.md). O .proto fica em musi/busca/v1/ para
+# casar com o package `musi.busca.v1`, como o buf exige.
+version: v2
+modules:
+  - path: contratos
+    name: buf.build/fmarquesfilho/busca
+lint:
+  use:
+    - STANDARD
+  # O zero do enum segue a convencao em portugues do dominio (ADR-0002).
+  enum_zero_value_suffix: _NAO_ESPECIFICADA
+breaking:
+  use:
+    - FILE

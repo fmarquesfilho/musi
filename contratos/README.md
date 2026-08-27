@@ -8,7 +8,7 @@ aqui, e nenhum define o modelo por conta própria.
 | `obra.schema.json` | HTTP, entre app e API | DIM0524 · DIM0547 |
 
 | `exemplos/*.json` | Casos de teste comuns | Os três |
-| `busca.proto` | Contrato gRPC — **entra em vigor na Sprint 2** | DIM0547 |
+| `musi/busca/v1/busca.proto` | Contrato gRPC — hospedado no BSR; **runtime na Sprint 2** | DIM0547 |
 
 ## Duas fronteiras, dois formatos
 
@@ -46,12 +46,38 @@ componentes no mesmo commit — ver [ADR-0001](../docs/decisoes/0001-stacks-e-es
 | Formato | Fronteira | A partir da |
 |---|---|---|
 | JSON Schema e exemplos | Pública, HTTP | **Sprint 0** |
-| Protocol Buffers | Interna, entre serviços | **Sprint 2** |
+| Protocol Buffers | Interna, entre serviços | contrato agora (BSR); runtime **Sprint 2** |
 
 Estão juntos de propósito: é o mesmo domínio, descrito para dois consumidores
 diferentes. Separar em pastas sugeriria que são contratos independentes, e eles não
 são — quando `Filtro` ganha um construtor, os dois mudam.
 
-O `busca.proto` está aqui desde já para que dê para ver **onde o contrato vai
-chegar**. Nada no pipeline o verifica antes da Sprint 2, quando `buf lint` e
-`buf breaking` entram.
+O `busca.proto` já é tratado como contrato de verdade: `buf lint` e `buf build`
+rodam no CI (job `proto`), o módulo é hospedado no BSR, e `buf breaking` protege a
+compatibilidade. O que fica para a Sprint 2 é o **runtime** gRPC — os serviços
+ainda conversam por HTTP e JSON até lá.
+
+## BSR — Buf Schema Registry
+
+O contrato é publicado como o módulo **`buf.build/fmarquesfilho/busca`**. O layout
+segue o buf: o arquivo fica em `musi/busca/v1/` para casar com o `package`.
+
+Localmente (o `buf` vem fixado pelo `mise`):
+
+```bash
+buf lint                                   # estilo e consistência
+buf breaking --against '.git#branch=main'  # não quebrou o contrato
+mise run test:proto                        # o que o CI roda (lint + build)
+```
+
+Para publicar, uma vez, autentique com um token de
+[buf.build/settings/user](https://buf.build/settings/user):
+
+```bash
+buf registry login      # cola o token
+buf push                # ou: mise run proto:push
+```
+
+No CI, o `buf push` acontece sozinho a cada merge no `main` — basta cadastrar o
+token como o segredo **`BUF_TOKEN`** do repositório. Enquanto o módulo não é
+publicado, o passo de `buf breaking` no CI passa com um aviso, sem falhar.
