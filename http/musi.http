@@ -1,0 +1,80 @@
+# MUSI — APIs locais. Requisições para `docker compose up`.
+#
+# Abre e roda direto no IntelliJ IDEA / Android Studio (HTTP Client) e no
+# VS Code com a extensão REST Client. Clique em "Run" acima de cada requisição.
+
+@ktor = http://localhost:8080
+@quarkus = http://localhost:8081
+@busca = http://localhost:9090
+
+### Ktor — health
+GET {{ktor}}/health
+
+### Ktor — busca simples por faceta
+GET {{ktor}}/obras?dimensao=ritmo&valor=baiao
+
+### Ktor — busca composta (árvore de filtro)
+POST {{ktor}}/obras
+Content-Type: application/json
+
+{
+  "tipo": "e",
+  "exigencias": [
+    { "tipo": "ou", "opcoes": [
+      { "tipo": "tem", "dimensao": "genero", "valor": "mpb" },
+      { "tipo": "tem", "dimensao": "genero", "valor": "forro" }
+    ]},
+    { "tipo": "ate", "ano": 1970 }
+  ]
+}
+
+### Ktor — OpenAPI (spec gerado)
+GET {{ktor}}/openapi.json
+
+### Quarkus — health
+GET {{quarkus}}/q/health
+
+### Quarkus — busca simples por faceta
+GET {{quarkus}}/obras?dimensao=ritmo&valor=baiao
+
+### Quarkus — busca composta (árvore de filtro)
+POST {{quarkus}}/obras
+Content-Type: application/json
+
+{
+  "tipo": "e",
+  "exigencias": [
+    { "tipo": "ou", "opcoes": [
+      { "tipo": "tem", "dimensao": "genero", "valor": "mpb" },
+      { "tipo": "tem", "dimensao": "genero", "valor": "forro" }
+    ]},
+    { "tipo": "ate", "ano": 1970 }
+  ]
+}
+
+### Quarkus — OpenAPI (spec)
+GET {{quarkus}}/q/openapi
+
+### Go (busca) — health
+GET {{busca}}/health
+
+### Go (busca) — faceta simples
+POST {{busca}}/buscar
+Content-Type: application/json
+
+{ "tipo": "tem", "dimensao": "ritmo", "valor": "baiao" }
+
+### Go (busca) — árvore composta
+POST {{busca}}/buscar
+Content-Type: application/json
+
+{
+  "tipo": "e",
+  "exigencias": [
+    { "tipo": "ou", "opcoes": [
+      { "tipo": "tem", "dimensao": "genero", "valor": "mpb" },
+      { "tipo": "tem", "dimensao": "genero", "valor": "forro" }
+    ]},
+    { "tipo": "ate", "ano": 1970 }
+  ]
+}

@@ -1,0 +1,28 @@
+meta {
+  name: Busca composta
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{quarkus}}/obras
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "tipo": "e",
+    "exigencias": [
+      { "tipo": "ou", "opcoes": [
+        { "tipo": "tem", "dimensao": "genero", "valor": "mpb" },
+        { "tipo": "tem", "dimensao": "genero", "valor": "forro" }
+      ]},
+      { "tipo": "ate", "ano": 1970 }
+    ]
+  }
+}

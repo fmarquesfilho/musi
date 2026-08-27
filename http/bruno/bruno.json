@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "MUSI — APIs locais",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

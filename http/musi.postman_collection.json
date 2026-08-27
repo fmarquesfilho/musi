@@ -1,0 +1,153 @@
+{
+  "info": {
+    "name": "MUSI — APIs locais",
+    "description": "Coleção para testar as APIs do MUSI rodando localmente via `docker compose up`.\n\nBases (variáveis da coleção):\n- ktor    → http://localhost:8080  (Kotlin/Ktor)\n- quarkus → http://localhost:8081  (Java/Quarkus)\n- busca   → http://localhost:9090  (serviço Go)\n\nFormato v2.1 — importável em Postman, Insomnia, Hoppscotch e Bruno.\nAlternativa: importe direto o OpenAPI em {{ktor}}/openapi.json ou {{quarkus}}/q/openapi.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "ktor", "value": "http://localhost:8080" },
+    { "key": "quarkus", "value": "http://localhost:8081" },
+    { "key": "busca", "value": "http://localhost:9090" }
+  ],
+  "item": [
+    {
+      "name": "API Ktor (8080)",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{ktor}}/health", "host": ["{{ktor}}"], "path": ["health"] }
+          }
+        },
+        {
+          "name": "Busca simples (faceta)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ktor}}/obras?dimensao=ritmo&valor=baiao",
+              "host": ["{{ktor}}"],
+              "path": ["obras"],
+              "query": [
+                { "key": "dimensao", "value": "ritmo" },
+                { "key": "valor", "value": "baiao" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Busca composta (arvore de filtro)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"e\",\n  \"exigencias\": [\n    { \"tipo\": \"ou\", \"opcoes\": [\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"mpb\" },\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"forro\" }\n    ]},\n    { \"tipo\": \"ate\", \"ano\": 1970 }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{ktor}}/obras", "host": ["{{ktor}}"], "path": ["obras"] }
+          }
+        },
+        {
+          "name": "OpenAPI (spec)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{ktor}}/openapi.json", "host": ["{{ktor}}"], "path": ["openapi.json"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "API Quarkus (8081)",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{quarkus}}/q/health", "host": ["{{quarkus}}"], "path": ["q", "health"] }
+          }
+        },
+        {
+          "name": "Busca simples (faceta)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{quarkus}}/obras?dimensao=ritmo&valor=baiao",
+              "host": ["{{quarkus}}"],
+              "path": ["obras"],
+              "query": [
+                { "key": "dimensao", "value": "ritmo" },
+                { "key": "valor", "value": "baiao" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Busca composta (arvore de filtro)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"e\",\n  \"exigencias\": [\n    { \"tipo\": \"ou\", \"opcoes\": [\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"mpb\" },\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"forro\" }\n    ]},\n    { \"tipo\": \"ate\", \"ano\": 1970 }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{quarkus}}/obras", "host": ["{{quarkus}}"], "path": ["obras"] }
+          }
+        },
+        {
+          "name": "OpenAPI (spec)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{quarkus}}/q/openapi", "host": ["{{quarkus}}"], "path": ["q", "openapi"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Servico de busca — Go (9090)",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{busca}}/health", "host": ["{{busca}}"], "path": ["health"] }
+          }
+        },
+        {
+          "name": "Buscar — faceta simples",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"tipo\": \"tem\", \"dimensao\": \"ritmo\", \"valor\": \"baiao\" }",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{busca}}/buscar", "host": ["{{busca}}"], "path": ["buscar"] }
+          }
+        },
+        {
+          "name": "Buscar — arvore composta",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"e\",\n  \"exigencias\": [\n    { \"tipo\": \"ou\", \"opcoes\": [\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"mpb\" },\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"forro\" }\n    ]},\n    { \"tipo\": \"ate\", \"ano\": 1970 }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{busca}}/buscar", "host": ["{{busca}}"], "path": ["buscar"] }
+          }
+        }
+      ]
+    }
+  ]
+}
