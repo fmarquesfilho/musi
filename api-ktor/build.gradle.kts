@@ -27,6 +27,11 @@ dependencies {
     implementation(libs.ktor.server.conditional)  // ETag e 304
     implementation(libs.ktor.json)
 
+    // OpenAPI gerado a partir das rotas, + Swagger UI (ktor-openapi-tools).
+    // O spec sai do próprio código, como no lado Quarkus — não de um arquivo à mão.
+    implementation(libs.smiley4.openapi)
+    implementation(libs.smiley4.swaggerui)
+
     // Ktor Client - o MESMO que o app usa para falar com esta api
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)

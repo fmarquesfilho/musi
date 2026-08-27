@@ -2,6 +2,7 @@ package br.ufrn.musi
 
 import br.ufrn.musi.adaptadores.web.Problema
 import br.ufrn.musi.adaptadores.web.rotas
+import io.github.smiley4.ktoropenapi.OpenApi
 import io.ktor.http.CacheControl
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.CachingOptions
@@ -36,6 +37,22 @@ fun main() {
 fun Application.modulo(urlBusca: String) {
 
     install(Koin) { modules(modulosDaAplicacao(urlBusca)) }
+
+    // OpenAPI gerado a partir das rotas documentadas em Rotas.kt.
+    // A documentação vive junto da rota, no mesmo DSL — não num arquivo à parte
+    // que pode divergir do código. As rotas de spec e do Swagger UI ficam em Rotas.kt.
+    install(OpenApi) {
+        info {
+            title = "MUSI — API de busca (Ktor)"
+            version = "0.1.0"
+            description = "Fachada de leitura do acervo. A ordenação é sempre " +
+                "declarada por quem consulta, nunca automática (ADR-0002)."
+        }
+        server {
+            url = "http://localhost:8080"
+            description = "Execução local"
+        }
+    }
 
     install(ContentNegotiation) { json() }
 
