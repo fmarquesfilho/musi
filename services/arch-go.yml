@@ -1,0 +1,22 @@
+# Regra de arquitetura do serviço Go, verificada por arch-go no CI.
+#
+# A camada de domínio (busca/dominio) é pura: não conhece transporte, serialização
+# nem persistência. Um import de `net/http` ou `encoding/json` ali fura a regra de
+# dependência da Clean Architecture — e agora falha o pipeline, em vez de passar
+# despercebido. Ver docs/STACK.md e ADR-0002.
+#
+# O acesso externo (HTTP, JSON) mora nos ADAPTADORES: cmd/servidor e
+# services/conciliacao/musicbrainz.go — por isso a regra alcança só o domínio.
+version: 1
+# compliance: as regras existentes devem passar 100%.
+# coverage 0: não exigimos que TODO pacote tenha regra — só o domínio precisa da sua.
+threshold:
+  compliance: 100
+  coverage: 0
+dependenciesRules:
+  - package: "**.busca.dominio"
+    shouldNotDependsOn:
+      standard:
+        - "net/http"
+        - "encoding/json"
+        - "database/sql"
