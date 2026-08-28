@@ -46,6 +46,10 @@ Sobem **três** containers: as duas APIs e o serviço Go.
 
 As duas APIs respondem a mesma coisa, contra o mesmo serviço Go.
 
+Para explorar os endpoints sem `curl`, a pasta [`http/`](../http/) traz coleções prontas
+(Bruno, Postman/Insomnia/Hoppscotch e um `.http` para IntelliJ/VS Code) e aponta para o
+Swagger de cada API. Ver [`http/README.md`](../http/README.md).
+
 Se quiser só uma delas:
 
 ```bash
