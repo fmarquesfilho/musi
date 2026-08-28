@@ -41,6 +41,11 @@ corrigir em uma delas. É esse mecanismo que mantém o domínio consistente no m
 Campo `versao` na raiz do schema, em SemVer. Mudanças maiores exigem ADR e alcançam os três
 componentes no mesmo commit — ver [ADR-0001](../docs/decisoes/0001-stacks-e-estrutura.md).
 
+O `obra.schema.json` está em **1.1.0**: a [ADR-0003](../docs/decisoes/0003-conciliacao-musicbrainz.md)
+acrescentou os campos opcionais `mbid` e `mbidComposicao` (identidade do MusicBrainz). É uma
+mudança **aditiva** — obras sem esses campos continuam válidas —, e o mesmo par foi refletido no
+`busca.proto` (campos 6 e 7) e nas três implementações do domínio, no mesmo passo.
+
 ## Uma pasta, duas fronteiras, dois momentos
 
 | Formato | Fronteira | A partir da |

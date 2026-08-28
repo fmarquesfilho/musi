@@ -9,11 +9,18 @@ Uma gravação catalogada.
 
 | Campo | Tipo | Nota |
 |---|---|---|
-| `id` | texto | MBID do MusicBrainz quando existir; senão, identificador local |
+| `id` | texto | Identificador **local** (`obra-01`), sempre presente |
 | `titulo` | texto | — |
 | `artista` | texto | Nome principal creditado |
 | `ano` | inteiro | Ano da gravação, não do lançamento |
 | `facetas` | lista de Faceta | Pode ser vazia |
+| `mbid` | texto? | MBID da **gravação** no MusicBrainz; nulo até conciliar — ADR-0003 |
+| `mbidComposicao` | texto? | MBID da **composição** (work), compartilhado por regravações — ADR-0003 |
+
+O `id` local e o `mbid` global são campos distintos: uma obra sempre tem `id`, e ganha `mbid`
+quando é conciliada com o MusicBrainz. A conciliação acontece na importação, fora do ciclo de
+leitura, e a escolha entre candidatos é humana — ver [ADR-0003](decisoes/0003-conciliacao-musicbrainz.md)
+e o serviço `services/conciliacao`.
 
 ## Faceta
 
