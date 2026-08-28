@@ -21,7 +21,11 @@ data class Obra(
     val titulo: String,
     val artista: String,
     val ano: Int,
-    val facetas: List<Faceta>
+    val facetas: List<Faceta>,
+    // Identidade global, preenchida na conciliação com o MusicBrainz — ADR-0003.
+    // Nulo até a obra ser conciliada; a busca não depende deles.
+    val mbid: String? = null,             // a gravação (recording)
+    val mbidComposicao: String? = null,   // a composição (work), compartilhada por regravações
 )
 
 /**

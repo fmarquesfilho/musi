@@ -7,6 +7,7 @@ import io.ktor.http.CacheControl
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.CachingOptions
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
@@ -54,7 +55,9 @@ fun Application.modulo(urlBusca: String) {
         }
     }
 
-    install(ContentNegotiation) { json() }
+    // explicitNulls = false: campos nulos (como `mbid` antes da conciliação) saem do JSON,
+    // em vez de virarem `"mbid": null` em toda obra. Ver ADR-0003.
+    install(ContentNegotiation) { json(Json { explicitNulls = false }) }
 
     install(CallLogging)
 

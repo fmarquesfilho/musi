@@ -57,7 +57,9 @@ func (d filtroDTO) paraDominio() dominio.Filtro {
 var acervo = []dominio.Obra{
 	{ID: "obra-01", Titulo: "Ponteio", Artista: "Edu Lobo", Ano: 1967, Facetas: []dominio.Faceta{
 		{Dimensao: "genero", Valor: "mpb"}, {Dimensao: "ritmo", Valor: "ponteio"},
-		{Dimensao: "movimento", Valor: "festivais-da-cancao"}}},
+		{Dimensao: "movimento", Valor: "festivais-da-cancao"}},
+		Mbid:           "11111111-1111-4111-8111-111111111111",
+		MbidComposicao: "22222222-2222-4222-8222-222222222222"},
 	{ID: "obra-02", Titulo: "Beira Mar", Artista: "Gilberto Gil", Ano: 1969, Facetas: []dominio.Faceta{
 		{Dimensao: "genero", Valor: "mpb"}, {Dimensao: "ritmo", Valor: "ijexa"},
 		{Dimensao: "movimento", Valor: "tropicalia"}}},
