@@ -1,86 +1,115 @@
 package dominio
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
 
-// Os mesmos casos de contratos/exemplos/casos-de-busca.json.
-// app (Kotlin) e api (Java) rodam estes mesmos casos e devem concordar.
+// Os casos de busca vêm de contratos/exemplos/, CARREGADOS (não transcritos):
+// app (Kotlin) e api (Java) carregam os mesmos arquivos, então um caso novo alcança
+// as três implementações de uma vez. Havendo divergência, uma delas está errada.
+// Ver ADR-0002 e contratos/exemplos/casos-de-busca.json.
 
-var acervo = []Obra{
-	{ID: "obra-01", Titulo: "Ponteio", Artista: "Edu Lobo", Ano: 1967, Facetas: []Faceta{
-		{"genero", "mpb"}, {"ritmo", "ponteio"}, {"movimento", "festivais-da-cancao"}}},
-	{ID: "obra-02", Titulo: "Beira Mar", Artista: "Gilberto Gil", Ano: 1969, Facetas: []Faceta{
-		{"genero", "mpb"}, {"ritmo", "ijexa"}, {"movimento", "tropicalia"}}},
-	{ID: "obra-03", Titulo: "Asa Branca", Artista: "Luiz Gonzaga", Ano: 1947, Facetas: []Faceta{
-		{"genero", "forro"}, {"ritmo", "baiao"}, {"instrumentacao", "sanfona"}}},
-	{ID: "obra-04", Titulo: "Rio Grande", Artista: "Chico Science & Nacao Zumbi", Ano: 1994, Facetas: []Faceta{
-		{"ritmo", "maracatu"}, {"movimento", "manguebeat"}, {"regiao", "recife"}}},
-	{ID: "obra-05", Titulo: "Refazenda", Artista: "Gilberto Gil", Ano: 1975, Facetas: []Faceta{
-		{"genero", "mpb"}, {"ritmo", "baiao"}}},
+// exemplos localiza contratos/exemplos/<nome> subindo a partir do diretório do teste,
+// para funcionar tanto rodando `go test ./...` quanto a partir da raiz.
+func exemplos(t *testing.T, nome string) []byte {
+	t.Helper()
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for {
+		caminho := filepath.Join(dir, "contratos", "exemplos", nome)
+		if _, err := os.Stat(caminho); err == nil {
+			dados, err := os.ReadFile(caminho)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return dados
+		}
+		pai := filepath.Dir(dir)
+		if pai == dir {
+			t.Fatalf("não encontrei contratos/exemplos/%s subindo de %s", nome, dir)
+		}
+		dir = pai
+	}
 }
 
-func ids(f Filtro) []string {
-	resultado := []string{}
-	for _, o := range Buscar(acervo, f) {
-		resultado = append(resultado, o.ID)
+func carregarAcervo(t *testing.T) []Obra {
+	var arquivo struct {
+		Obras []Obra `json:"obras"`
 	}
-	return resultado
+	if err := json.Unmarshal(exemplos(t, "acervo.json"), &arquivo); err != nil {
+		t.Fatal(err)
+	}
+	return arquivo.Obras
+}
+
+// filtroDeJSON converte a árvore JSON em Filtro. Vive no TESTE, não no domínio:
+// converter JSON é trabalho de adaptador, e o domínio não conhece o formato.
+func filtroDeJSON(t *testing.T, m map[string]any) Filtro {
+	t.Helper()
+	switch m["tipo"] {
+	case "tem":
+		return Tem{Dimensao: texto(m["dimensao"]), Valor: texto(m["valor"])}
+	case "ou":
+		return Ou{Opcoes: filtrosDeJSON(t, m["opcoes"])}
+	case "e":
+		return E{Exigencias: filtrosDeJSON(t, m["exigencias"])}
+	case "exceto":
+		return Exceto{Filtro: filtroDeJSON(t, m["filtro"].(map[string]any))}
+	case "ate":
+		return Ate{Ano: int(m["ano"].(float64))}
+	default:
+		t.Fatalf("tipo de filtro desconhecido: %v", m["tipo"])
+		return nil
+	}
+}
+
+func filtrosDeJSON(t *testing.T, v any) []Filtro {
+	itens, _ := v.([]any)
+	fs := make([]Filtro, len(itens))
+	for i, it := range itens {
+		fs[i] = filtroDeJSON(t, it.(map[string]any))
+	}
+	return fs
+}
+
+func texto(v any) string {
+	if s, ok := v.(string); ok {
+		return s
+	}
+	return ""
 }
 
 func TestCasosCompartilhados(t *testing.T) {
-	casos := []struct {
-		nome     string
-		filtro   Filtro
-		esperado []string
-	}{
-		{
-			"faceta simples",
-			Tem{"ritmo", "baiao"},
-			[]string{"obra-03", "obra-05"},
-		},
-		{
-			"disjuncao de ritmos",
-			Ou{[]Filtro{Tem{"ritmo", "ijexa"}, Tem{"ritmo", "maracatu"}}},
-			[]string{"obra-02", "obra-04"},
-		},
-		{
-			"conjuncao com exclusao",
-			E{[]Filtro{Tem{"genero", "mpb"}, Exceto{Tem{"ritmo", "ijexa"}}}},
-			[]string{"obra-01", "obra-05"},
-		},
-		{
-			"tres niveis com corte por ano",
-			E{[]Filtro{
-				Ou{[]Filtro{Tem{"movimento", "tropicalia"}, Tem{"movimento", "festivais-da-cancao"}}},
-				Ate{1968},
-				Exceto{Tem{"ritmo", "ijexa"}},
-			}},
-			[]string{"obra-01"},
-		},
-		{
-			"disjuncao vazia nao aceita nada",
-			Ou{[]Filtro{}},
-			[]string{},
-		},
-		{
-			"conjuncao vazia aceita tudo",
-			E{[]Filtro{}},
-			[]string{"obra-01", "obra-02", "obra-03", "obra-04", "obra-05"},
-		},
-		{
-			"dimensao inexistente nao casa",
-			Tem{"afinacao", "aberta"},
-			[]string{},
-		},
+	acervo := carregarAcervo(t)
+
+	var arquivo struct {
+		Casos []struct {
+			Nome     string         `json:"nome"`
+			Filtro   map[string]any `json:"filtro"`
+			Esperado []string       `json:"esperado"`
+		} `json:"casos"`
+	}
+	if err := json.Unmarshal(exemplos(t, "casos-de-busca.json"), &arquivo); err != nil {
+		t.Fatal(err)
+	}
+	if len(arquivo.Casos) == 0 {
+		t.Fatal("nenhum caso carregado de casos-de-busca.json")
 	}
 
-	for _, c := range casos {
-		t.Run(c.nome, func(t *testing.T) {
-			obtido := ids(c.filtro)
-			if !reflect.DeepEqual(obtido, c.esperado) {
-				t.Errorf("esperava %v, obteve %v", c.esperado, obtido)
+	for _, caso := range arquivo.Casos {
+		t.Run(caso.Nome, func(t *testing.T) {
+			obtido := make([]string, 0)
+			for _, o := range Buscar(acervo, filtroDeJSON(t, caso.Filtro)) {
+				obtido = append(obtido, o.ID)
+			}
+			if !reflect.DeepEqual(obtido, caso.Esperado) {
+				t.Errorf("esperava %v, obteve %v", caso.Esperado, obtido)
 			}
 		})
 	}

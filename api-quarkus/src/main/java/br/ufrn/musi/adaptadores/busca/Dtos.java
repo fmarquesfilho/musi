@@ -22,17 +22,20 @@ public final class Dtos {
 
     public record FacetaDto(String dimensao, String valor) {}
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public record ObraDto(String id, String titulo, String artista, int ano,
-                          List<FacetaDto> facetas) {}
+                          List<FacetaDto> facetas, String mbid, String mbidComposicao) {}
 
     public static Obra paraDominio(ObraDto d) {
         return new Obra(d.id(), d.titulo(), d.artista(), d.ano(),
-            d.facetas().stream().map(f -> new Faceta(f.dimensao(), f.valor())).toList());
+            d.facetas().stream().map(f -> new Faceta(f.dimensao(), f.valor())).toList(),
+            d.mbid(), d.mbidComposicao());
     }
 
     public static ObraDto paraDto(Obra o) {
         return new ObraDto(o.id(), o.titulo(), o.artista(), o.ano(),
-            o.facetas().stream().map(f -> new FacetaDto(f.dimensao(), f.valor())).toList());
+            o.facetas().stream().map(f -> new FacetaDto(f.dimensao(), f.valor())).toList(),
+            o.mbid(), o.mbidComposicao());
     }
 
     /**

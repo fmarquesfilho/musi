@@ -31,13 +31,15 @@ data class ObraDto(
     val artista: String,
     val ano: Int,
     val facetas: List<FacetaDto>,
+    val mbid: String? = null,             // ADR-0003: identidade global, ausente até conciliar
+    val mbidComposicao: String? = null,
 )
 
 fun ObraDto.paraDominio() =
-    Obra(id, titulo, artista, ano, facetas.map { Faceta(it.dimensao, it.valor) })
+    Obra(id, titulo, artista, ano, facetas.map { Faceta(it.dimensao, it.valor) }, mbid, mbidComposicao)
 
 fun Obra.paraDto() =
-    ObraDto(id, titulo, artista, ano, facetas.map { FacetaDto(it.dimensao, it.valor) })
+    ObraDto(id, titulo, artista, ano, facetas.map { FacetaDto(it.dimensao, it.valor) }, mbid, mbidComposicao)
 
 /**
  * Domínio → DTO.

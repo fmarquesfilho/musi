@@ -46,7 +46,7 @@ O MUSI implementa o que `docs/SPRINT-0.md` das três disciplinas pede:
 | Acordo de processo | [`processo/acordo-de-processo.md`](processo/acordo-de-processo.md) | DIM0510 |
 | Decisões registradas | [`docs/decisoes/`](docs/decisoes/) — 3 ADRs | as três |
 
-Copiem a estrutura, não a extensão: a proposta de vocês cabe em 3 páginas.
+Copiem a estrutura, não a extensão: a proposta de vocês cabe em 5 páginas.
 
 ## Como rodar
 
@@ -73,8 +73,9 @@ musi/
 ├── shared/          o domínio, em Kotlin — usado por api E app
 ├── api-ktor/        Kotlin · Ktor · Koin                → DIM0547
 ├── api-quarkus/     Java 25 · Quarkus · CDI             → DIM0547
-├── services/        Go · gRPC                          → DIM0547
+├── services/        Go — busca/ e conciliacao/          → DIM0547
 ├── app/             Kotlin Multiplatform · Compose     → DIM0524
+├── http/            coleções p/ testar as APIs (Bruno, Postman, .http) → DIM0547
 ├── exercicios/      exercícios de aula, por disciplina
 ├── .github/workflows/ci.yml    pipeline único, jobs independentes
 └── mise.toml        versões e tasks

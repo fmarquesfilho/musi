@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ufrn.br/musi/contratos/obra.schema.json",
   "title": "Obra",
-  "versao": "1.0.0",
+  "versao": "1.1.0",
   "type": "object",
   "required": ["id", "titulo", "artista", "ano", "facetas"],
   "properties": {
@@ -10,11 +10,18 @@
     "titulo":  { "type": "string", "minLength": 1 },
     "artista": { "type": "string", "minLength": 1 },
     "ano":     { "type": "integer", "minimum": 1877, "maximum": 2100 },
-    "facetas": { "type": "array", "items": { "$ref": "#/$defs/faceta" } }
+    "facetas": { "type": "array", "items": { "$ref": "#/$defs/faceta" } },
+    "mbid":           { "$ref": "#/$defs/mbid" },
+    "mbidComposicao": { "$ref": "#/$defs/mbid" }
   },
   "additionalProperties": false,
 
   "$defs": {
+    "mbid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "MusicBrainz ID (UUID). `mbid` é a gravação; `mbidComposicao` é a obra/composição. Preenchidos na conciliação, fora do ciclo de leitura — ADR-0003."
+    },
     "faceta": {
       "type": "object",
       "required": ["dimensao", "valor"],

@@ -37,6 +37,11 @@ message Obra {
   string artista         = 3;
   int32  ano             = 4;
   repeated Faceta facetas = 5;
+
+  // Identidade global, preenchida na conciliacao com o MusicBrainz - ADR-0003.
+  // Fora do ciclo de leitura: vazio ate a obra ser conciliada.
+  string mbid            = 6;  // a gravacao (recording)
+  string mbid_composicao = 7;  // a composicao (work), compartilhada por regravacoes
 }
 
 // ---------------------------------------------------------------------------

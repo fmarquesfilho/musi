@@ -28,6 +28,11 @@ type Obra struct {
 	Artista string   `json:"artista"`
 	Ano     int      `json:"ano"`
 	Facetas []Faceta `json:"facetas"`
+
+	// Identidade global, preenchida na conciliacao com o MusicBrainz - ADR-0003.
+	// Vazio ate a obra ser conciliada; a busca nao depende deles.
+	Mbid           string `json:"mbid,omitempty"`           // a gravacao (recording)
+	MbidComposicao string `json:"mbidComposicao,omitempty"` // a composicao (work)
 }
 
 // Filtro e a arvore de criterios - ADR-0002.

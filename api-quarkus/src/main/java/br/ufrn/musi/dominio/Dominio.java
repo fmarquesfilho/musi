@@ -20,8 +20,12 @@ public final class Dominio {
     /** Um par (dimensão, valor). A lista de dimensões não é fixa — ADR-0002. */
     public record Faceta(String dimensao, String valor) {}
 
+    /**
+     * `mbid` e `mbidComposicao` são a identidade global, preenchida na conciliação com
+     * o MusicBrainz — ADR-0003. Nulos até a obra ser conciliada; a busca não depende deles.
+     */
     public record Obra(String id, String titulo, String artista, int ano,
-                       List<Faceta> facetas) {}
+                       List<Faceta> facetas, String mbid, String mbidComposicao) {}
 
     /**
      * A busca é uma árvore — ADR-0002.

@@ -2,7 +2,7 @@
 
 > **Exemplo de referência.** Este documento segue a estrutura pedida em
 > `docs/SPRINT-0.md` das três disciplinas ao mesmo tempo. O de vocês precisa
-> atender só à sua, e cabe em **3 páginas**.
+> atender só à sua, e cabe em **5 páginas**.
 >
 > Este é mais longo porque cobre as três e explica as escolhas. Copiem a estrutura,
 > não a extensão.
