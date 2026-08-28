@@ -13,6 +13,7 @@ gradle = "8.14"
 maven  = "3.9"
 python = "3.12"         # validacao de contratos e verificacao de docs
 buf    = "1.71.0"       # lint/breaking do contrato gRPC e push para o BSR
+"go:github.com/arch-go/arch-go" = "1.7.0"   # regra de dependencia do dominio Go
 
 [env]
 MUSI_BUSCA_URL = "http://localhost:9090"
@@ -92,7 +93,7 @@ depends = ["test:contratos", "test:proto", "test:docs", "test:shared", "test:api
 
 [tasks."lint:go"]
 dir = "services"
-run = ["go vet ./...", "gofmt -l ."]
+run = ["go vet ./...", "gofmt -l .", "arch-go"]
 
 [tasks."lint:api-ktor"]
 run = "./gradlew :api-ktor:build -x test"

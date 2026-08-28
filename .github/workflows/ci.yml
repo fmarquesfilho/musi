@@ -229,6 +229,12 @@ jobs:
         working-directory: services
         run: go vet ./...
 
+      - name: Arquitetura (arch-go)
+        working-directory: services
+        run: |
+          go install github.com/arch-go/arch-go@v1.7.0
+          "$(go env GOPATH)/bin/arch-go"
+
       - name: Testes
         working-directory: services
         run: go test -race ./...
