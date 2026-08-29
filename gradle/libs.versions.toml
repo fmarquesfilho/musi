@@ -37,4 +37,5 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ktor                 = { id = "io.ktor.plugin",                           version.ref = "ktor" }
 compose-multiplatform = { id = "org.jetbrains.compose",                  version.ref = "compose" }
 compose-compiler      = { id = "org.jetbrains.kotlin.plugin.compose",    version.ref = "kotlin" }
+compose-hot-reload    = { id = "org.jetbrains.compose.hot-reload",       version = "1.2.0" }
 versions              = { id = "com.github.ben-manes.versions",          version = "0.53.0" }

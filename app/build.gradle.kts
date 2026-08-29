@@ -1,12 +1,16 @@
 // MUSI - app  |  DIM0524 Sistemas para Dispositivos Móveis
 //
 // O domínio vem de :shared — o MESMO módulo que a api usa.
-// Rodar:  ./gradlew :app:jvmTest
+// Testar:              ./gradlew :app:jvmTest
+// Rodar a tela (desktop) com HOT RELOAD:  ./gradlew :app:hotRunJvm
+//   A JetBrains Runtime que o hot reload exige é provisionada pela
+//   foojay-resolver-convention (ver settings.gradle.kts).
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.compose.hot.reload)
 }
 
 kotlin {
@@ -35,8 +39,20 @@ kotlin {
             // Sprint 2: Koin — o MESMO que a api usa
             // Sprint 3: Ktor Client — o MESMO que a api usa
         }
+        // A janela desktop, onde se roda o hot reload. O código de UI fica em
+        // commonMain; só o ponto de entrada (main.kt) é específico do desktop.
+        jvmMain.dependencies {
+            implementation(compose.desktop.currentOs)
+        }
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
+    }
+}
+
+// Ponto de entrada do app desktop, usado pelo hot reload (`:app:hotRunJvm`).
+compose.desktop {
+    application {
+        mainClass = "br.ufrn.musi.MainKt"
     }
 }

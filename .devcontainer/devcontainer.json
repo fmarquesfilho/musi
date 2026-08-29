@@ -23,7 +23,10 @@
     },
     "ghcr.io/devcontainers/features/go:1": { "version": "1.27" },
     "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+
+    "//desktop": "Area de trabalho leve (noVNC) para ver a janela do Compose Desktop no navegador — DIM0524. Senha padrao: vscode.",
+    "ghcr.io/devcontainers/features/desktop-lite:1": {}
   },
 
   "postCreateCommand": "pip install -r requirements-dev.txt && chmod +x verificar.sh",
@@ -47,11 +50,12 @@
     }
   },
 
-  "forwardPorts": [8080, 8081, 9090],
+  "forwardPorts": [8080, 8081, 9090, 6080],
   "portsAttributes": {
     "8080": { "label": "api-ktor" },
     "8081": { "label": "api-quarkus" },
-    "9090": { "label": "services/busca" }
+    "9090": { "label": "services/busca" },
+    "6080": { "label": "Área de trabalho (noVNC) — Compose Desktop" }
   },
 
   "remoteUser": "vscode"
