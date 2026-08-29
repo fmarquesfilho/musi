@@ -5,7 +5,7 @@
 Ao final, você terá uma `api/` em Ktor que atende HTTP e conversa com um serviço em Go, com
 o domínio num módulo compartilhado que o app móvel também importa.
 
-> Pré-requisitos: `mise`, e depois `mise install` — ele instala JDK 21, Gradle e Go nas
+> Pré-requisitos: `mise`, e depois `mise install` — ele instala JDK 25, Gradle e Go nas
 > versões corretas. Docker é necessário para a Parte 5.
 
 ---

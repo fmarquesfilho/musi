@@ -30,7 +30,7 @@ O backend possui três implementações que respondem ao mesmo contrato (JSON Sc
 
 ## Infraestrutura e DevOps
 
-- **Cloud IDE**: GitHub Codespaces via `.devcontainer`. Todas as dependências (Go 1.27, JDK 21+, Python, Docker-in-Docker e Desktop-lite) já estão provisionadas.
+- **Cloud IDE**: GitHub Codespaces via `.devcontainer`. Todas as dependências (Go 1.27, JDK 25, Python, Docker-in-Docker e Desktop-lite) já estão provisionadas.
 - **Banco de Dados**: PostgreSQL (Hospedado no Neon).
 - **Deploy Automático**: Render (via `render.yaml`).
 - **Validação de Contratos**: Scripts em Python testando APIs contra os Schemas JSON locais (`contratos/`).

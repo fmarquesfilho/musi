@@ -14,7 +14,7 @@ E, no fim, **como publicar no Render**.
 
 No repositório: botão **Code** → aba **Codespaces** → **Create codespace on main**.
 
-O `.devcontainer/devcontainer.json` monta o ambiente sozinho: JDK 21, Gradle, Maven, Go 1.27,
+O `.devcontainer/devcontainer.json` monta o ambiente sozinho: JDK 25, Gradle, Maven, Go 1.27,
 Python e Docker. Todo mundo recebe exatamente as mesmas versões.
 
 **Para testar a interface gráfica (Compose Desktop) no Codespaces:**
@@ -73,7 +73,7 @@ sem erro na aplicação costuma ser OOM killer, que é o que o `JAVA_TOOL_OPTION
 
 ```bash
 curl https://mise.run | sh      # https://mise.jdx.dev
-mise install                    # instala JDK 21, Gradle, Maven, Go e Python
+mise install                    # instala JDK 25, Gradle, Maven, Go e Python
 mise run setup                  # dependências Python dos scripts
 mise run verificar
 ```
