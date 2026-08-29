@@ -5,7 +5,7 @@
 # ataque minima.
 
 # --------------------------------------------------------------------------
-FROM golang:1.25-alpine AS build
+FROM golang:1.27-alpine AS build
 WORKDIR /build
 
 # Sem dependencia externa na Sprint 0, entao nao ha go.sum. Quando houver,
