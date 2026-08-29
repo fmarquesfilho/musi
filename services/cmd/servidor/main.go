@@ -123,6 +123,10 @@ func main() {
 		Addr:              ":" + porta,
 		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
+		// Go 1.27: limita a quantidade de valores por cabecalho, contra
+		// cabecalhos abusivos. Mesma ideia do ReadHeaderTimeout: o servidor
+		// declara seus limites.
+		MaxHeaderValueCount: 100,
 	}
 
 	slog.Info("servico de busca no ar", "porta", porta, "obras", len(acervo))

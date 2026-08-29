@@ -21,7 +21,7 @@
       "installMaven": true,
       "mavenVersion": "3.9.9"
     },
-    "ghcr.io/devcontainers/features/go:1": { "version": "1.25" },
+    "ghcr.io/devcontainers/features/go:1": { "version": "1.27" },
     "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },

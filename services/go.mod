@@ -4,4 +4,4 @@
 // `go test ./...` e `go build` funcionam de imediato.
 module github.com/fmarquesfilho/musi/services
 
-go 1.25
+go 1.27
