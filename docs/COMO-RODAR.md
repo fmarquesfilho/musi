@@ -14,8 +14,15 @@ E, no fim, **como publicar no Render**.
 
 No repositório: botão **Code** → aba **Codespaces** → **Create codespace on main**.
 
-O `.devcontainer/devcontainer.json` monta o ambiente sozinho: JDK 21, Gradle, Maven, Go 1.25,
+O `.devcontainer/devcontainer.json` monta o ambiente sozinho: JDK 21, Gradle, Maven, Go 1.27,
 Python e Docker. Todo mundo recebe exatamente as mesmas versões.
+
+**Para testar a interface gráfica (Compose Desktop) no Codespaces:**
+1. Na aba **Ports** (Portas) do terminal, clique no endereço da porta **6080**.
+2. Uma nova aba se abrirá com a Área de Trabalho (noVNC). A senha padrão é `vscode`.
+3. No terminal do Codespaces, rode o comando: 
+   `DISPLAY=:1 ./gradlew :app:jvmRun -Dskiko.renderApi=SOFTWARE`
+4. A janela do MUSI aparecerá na área de trabalho virtual! Para reabrir automaticamente ao salvar, adicione `--continuous` ao comando Gradle.
 
 ```bash
 mise run verificar          # confere tudo

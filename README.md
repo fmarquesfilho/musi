@@ -54,8 +54,7 @@ Copiem a estrutura, não a extensão: a proposta de vocês cabe em 5 páginas.
 docker compose up --build     # as duas APIs e o serviço Go
 ```
 
-Codespaces, Docker e Render em [`docs/COMO-RODAR.md`](docs/COMO-RODAR.md). Versões e
-atualização em [`docs/VERSOES.md`](docs/VERSOES.md). Publicação em
+Codespaces (incluindo acesso noVNC para a interface gráfica), Docker e Render em [`docs/COMO-RODAR.md`](docs/COMO-RODAR.md). A visão geral da stack em [`STACK.md`](STACK.md) e versões em [`docs/VERSOES.md`](docs/VERSOES.md). Publicação em
 [`docs/COMO-PUBLICAR.md`](docs/COMO-PUBLICAR.md).
 
 ## Mapa do repositório
