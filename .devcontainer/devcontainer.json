@@ -3,13 +3,6 @@
 
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
 
-  "//": [
-    "As versoes das ferramentas (JDK, Go, Maven, Python, buf, arch-go) vivem",
-    "num lugar so: o mise.toml na raiz. A feature do mise as instala na criacao",
-    "do container (postCreateCommand), e os atalhos `mise run` funcionam de fabrica.",
-    "docker-in-docker e desktop-lite sao capacidades, nao versoes de ferramenta."
-  ],
-
   "features": {
     "ghcr.io/devcontainers-contrib/features/mise:1": {},
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
