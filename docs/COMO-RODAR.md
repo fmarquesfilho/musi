@@ -12,8 +12,9 @@ Três caminhos. **O das aulas desta semana é o Codespaces** — comece por ele.
 > [COMO-PUBLICAR.md](COMO-PUBLICAR.md). Este arquivo é só sobre rodar.
 
 Cada comando aqui vem com o **atalho `mise run`** equivalente (as tarefas estão no `mise.toml`,
-e são as mesmas que o CI usa). Os atalhos precisam do `mise`; no Codespace os comandos completos
-já funcionam sem instalar nada, e o `mise` você habilita quando quiser (seção 3).
+e são as mesmas que o CI usa). No Codespace o `mise` **já vem instalado** — a feature do `mise`
+o instala e o `postCreateCommand` provisiona as ferramentas do `mise.toml` na criação do
+contêiner — então os atalhos funcionam de fábrica; os comandos completos valem como alternativa.
 
 ---
 
@@ -21,8 +22,10 @@ já funcionam sem instalar nada, e o `mise` você habilita quando quiser (seçã
 
 No repositório: botão **Code** → aba **Codespaces** → **Create codespace on main**.
 
-O `.devcontainer/devcontainer.json` monta o ambiente sozinho: JDK 25, Gradle, Maven, Go 1.27,
-Python e Docker. Todo mundo recebe exatamente as mesmas versões. Nada precisa ser instalado.
+O `.devcontainer/devcontainer.json` monta o ambiente sozinho: instala o `mise` e provisiona as
+ferramentas declaradas no `mise.toml` (JDK 25, Go 1.27, Maven, Python, buf, arch-go), além do
+Docker e da área de trabalho noVNC. Todo mundo recebe exatamente as mesmas versões, de uma fonte
+só. Nada precisa ser instalado à mão.
 
 ### Rodar os testes
 
@@ -152,7 +155,7 @@ completo que ele executa.
 
 ```bash
 curl https://mise.run | sh      # https://mise.jdx.dev
-mise install                    # instala JDK 25, Gradle, Maven, Go e Python (do mise.toml)
+mise install                    # instala JDK 25, Go, Maven, Python, buf (do mise.toml)
 mise run setup                  # == pip install -r requirements-dev.txt
 mise run verificar              # == ./verificar.sh
 ```
