@@ -7,7 +7,10 @@
     "GitHub Codespaces: botao `Code` -> `Codespaces` -> `Create codespace`.",
     "Localmente: VS Code + extensao Dev Containers + Docker Desktop.",
     "",
-    "Nada precisa ser instalado na maquina do laboratorio."
+    "Nada precisa ser instalado na maquina do laboratorio.",
+    "",
+    "A feature desktop-lite sobe uma area de trabalho leve (noVNC) na porta 6080,",
+    "para ver a janela do Compose Desktop no navegador — DIM0524. Senha padrao: vscode."
   ],
 
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
@@ -24,8 +27,6 @@
     "ghcr.io/devcontainers/features/go:1": { "version": "1.27" },
     "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-
-    "//desktop": "Area de trabalho leve (noVNC) para ver a janela do Compose Desktop no navegador — DIM0524. Senha padrao: vscode.",
     "ghcr.io/devcontainers/features/desktop-lite:1": {}
   },
 
