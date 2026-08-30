@@ -37,3 +37,5 @@ O backend possui três implementações que respondem ao mesmo contrato (JSON Sc
 - **Build System**: Gradle com Version Catalogs (`libs.versions.toml`).
 
 > Para ver as justificativas detalhadas das escolhas da stack, leia a [ADR-0001 (Stacks e Estrutura)](docs/decisoes/0001-stacks-e-estrutura.md).
+
+> Footprint de memória medido de cada componente (Go, Ktor, Quarkus): [docs/BENCHMARK.md](docs/BENCHMARK.md). Reproduza com `./benchmark/medir-memoria.sh`.
