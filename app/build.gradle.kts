@@ -1,8 +1,11 @@
 // MUSI - app  |  DIM0524 Sistemas para Dispositivos Móveis
 //
 // O domínio vem de :shared — o MESMO módulo que a api usa.
-// Testar:              ./gradlew :app:jvmTest
-// Rodar a tela (desktop) com HOT RELOAD:  ./gradlew :app:hotRunJvm
+// Testar:               ./gradlew :app:jvmTest
+// Rodar a tela (desktop): ./gradlew :app:run
+//   Em Codespaces/noVNC (sem GPU), acrescente -Pheadless para render por software:
+//   DISPLAY=:1 ./gradlew :app:run -Pheadless
+// Hot reload (já embutido no Compose Multiplatform): ./gradlew :app:hotRunJvm
 //   A JetBrains Runtime que o hot reload exige é provisionada pela
 //   foojay-resolver-convention (ver settings.gradle.kts).
 
@@ -10,7 +13,6 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.compose.hot.reload)
 }
 
 kotlin {
@@ -50,9 +52,15 @@ kotlin {
     }
 }
 
-// Ponto de entrada do app desktop, usado pelo hot reload (`:app:hotRunJvm`).
+// Ponto de entrada do app desktop (tasks `:app:run` e `:app:hotRunJvm`).
 compose.desktop {
     application {
         mainClass = "br.ufrn.musi.MainKt"
+
+        // Codespaces/noVNC não têm GPU. Com -Pheadless, o app renderiza por
+        // software (o flag chega à JVM do app por jvmArgs, não pelo daemon).
+        if (project.hasProperty("headless")) {
+            jvmArgs("-Dskiko.renderApi=SOFTWARE")
+        }
     }
 }
