@@ -122,6 +122,28 @@ description = "Sobe a api Java na 8081, em modo dev com hot reload"
 dir = "api-quarkus"
 run = "mvn -B -ntp quarkus:dev -Dquarkus.http.port=8081"
 
+# Sobe a tela do app Compose (DIM0524). Em Codespaces ($CODESPACES definido)
+# usa o desktop virtual (noVNC, DISPLAY=:1) e render por software.
+[tasks."run:app"]
+description = "Sobe a tela do app Compose (desktop; noVNC no Codespaces)"
+run = '''
+if [ -n "$CODESPACES" ]; then
+  DISPLAY=:1 ./gradlew :app:run -Pheadless
+else
+  ./gradlew :app:run
+fi
+'''
+
+[tasks."run:app-hot"]
+description = "Sobe a tela do app com hot reload (recarrega ao salvar)"
+run = '''
+if [ -n "$CODESPACES" ]; then
+  DISPLAY=:1 ./gradlew :app:hotRunJvm -Pheadless
+else
+  ./gradlew :app:hotRunJvm
+fi
+'''
+
 [tasks.demo]
 description = "Uma busca de exemplo contra a api local"
 run = """
