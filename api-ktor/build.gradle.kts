@@ -19,7 +19,9 @@ dependencies {
     implementation(project(":shared"))
 
     implementation(libs.ktor.server.core)
-    implementation(libs.ktor.server.netty)
+    // Engine CIO (corrotinas puras) em vez do Netty: menor footprint de memória
+    // e único engine com suporte a GraalVM native. Ver docs/BENCHMARK.md e docs/FOOTPRINT-KOTLIN.md.
+    implementation(libs.ktor.server.cio)
     implementation(libs.ktor.server.negotiation)
     implementation(libs.ktor.server.statuspages)
     implementation(libs.ktor.server.calllogging)

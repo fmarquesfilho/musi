@@ -10,8 +10,8 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.cachingheaders.CachingHeaders
 import io.ktor.server.plugins.conditionalheaders.ConditionalHeaders
@@ -24,7 +24,8 @@ fun main() {
     val porta = System.getenv("PORT")?.toIntOrNull() ?: 8080
     val urlBusca = System.getenv("MUSI_BUSCA_URL") ?: "http://localhost:9090"
 
-    embeddedServer(Netty, port = porta, host = "0.0.0.0") {
+    // Engine CIO (corrotinas puras): menor footprint que o Netty. Ver docs/BENCHMARK.md.
+    embeddedServer(CIO, port = porta, host = "0.0.0.0") {
         modulo(urlBusca)
     }.start(wait = true)
 }
