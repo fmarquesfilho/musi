@@ -3,22 +3,25 @@
 
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
 
+  "//": [
+    "As versoes das ferramentas (JDK, Go, Maven, Python, buf, arch-go) vivem",
+    "num lugar so: o mise.toml na raiz. A feature do mise as instala na criacao",
+    "do container (postCreateCommand), e os atalhos `mise run` funcionam de fabrica.",
+    "docker-in-docker e desktop-lite sao capacidades, nao versoes de ferramenta."
+  ],
+
   "features": {
-    "ghcr.io/devcontainers/features/java:1": {
-      "version": "25",
-      "jdkDistro": "tem",
-      "installGradle": true,
-      "gradleVersion": "8.14",
-      "installMaven": true,
-      "mavenVersion": "3.9.9"
-    },
-    "ghcr.io/devcontainers/features/go:1": { "version": "1.27" },
-    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
+    "ghcr.io/devcontainers-contrib/features/mise:1": {},
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/desktop-lite:1": {}
   },
 
-  "postCreateCommand": "pip install -r requirements-dev.txt && chmod +x verificar.sh",
+  "postCreateCommand": "mise trust && mise install java && ln -sfn \"$(mise where java)\" /home/vscode/.jdk && mise install && mise run setup",
+
+  "remoteEnv": {
+    "PATH": "/home/vscode/.local/share/mise/shims:${containerEnv:PATH}",
+    "JAVA_HOME": "/home/vscode/.jdk"
+  },
 
   "customizations": {
     "vscode": {
@@ -32,7 +35,7 @@
       ],
       "settings": {
         "java.configuration.runtimes": [
-          { "name": "JavaSE-25", "path": "/usr/local/sdkman/candidates/java/current", "default": true }
+          { "name": "JavaSE-25", "path": "/home/vscode/.jdk", "default": true }
         ],
         "files.eol": "\n"
       }
