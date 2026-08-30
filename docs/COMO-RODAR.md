@@ -11,6 +11,10 @@ Três caminhos. **O das aulas desta semana é o Codespaces** — comece por ele.
 > Para **publicar** — subir a aplicação no Render ou divulgar o repositório — veja
 > [COMO-PUBLICAR.md](COMO-PUBLICAR.md). Este arquivo é só sobre rodar.
 
+Cada comando aqui vem com o **atalho `mise run`** equivalente (as tarefas estão no `mise.toml`,
+e são as mesmas que o CI usa). Os atalhos precisam do `mise`; no Codespace os comandos completos
+já funcionam sem instalar nada, e o `mise` você habilita quando quiser (seção 3).
+
 ---
 
 ## 1. Codespaces — o ambiente das aulas
@@ -23,17 +27,17 @@ Python e Docker. Todo mundo recebe exatamente as mesmas versões. Nada precisa s
 ### Rodar os testes
 
 ```bash
-./verificar.sh
+./verificar.sh                    # atalho: mise run verificar
 ```
 
 Roda tudo que funciona sem configuração: contratos, documentação (DIM0510) e os testes de
 Kotlin (`shared`, `api-ktor`, `app`), Java (`api-quarkus`) e Go. Para rodar um stack só:
 
 ```bash
-./gradlew :api-ktor:test          # Kotlin — api (DIM0547)
-cd api-quarkus && mvn -q test     # Java — api (DIM0547)
-cd services && go test ./...      # Go — serviço de busca (DIM0547)
-./gradlew :app:jvmTest            # app Compose (DIM0524)
+./gradlew :api-ktor:test          # atalho: mise run test:api-ktor     — Kotlin (DIM0547)
+cd api-quarkus && mvn -q test     # atalho: mise run test:api-quarkus  — Java (DIM0547)
+cd services && go test ./...      # atalho: mise run test:go           — Go (DIM0547)
+./gradlew :app:jvmTest            # atalho: mise run test:app          — app Compose (DIM0524)
 ```
 
 ### Subir as APIs (DIM0547)
@@ -42,19 +46,19 @@ O serviço de busca em Go é a base das duas APIs. Suba-o **uma vez**, num termi
 rodando:
 
 ```bash
-cd services && go run ./cmd/servidor      # porta 9090
+cd services && go run ./cmd/servidor      # atalho: mise run run:busca   — porta 9090
 ```
 
 Depois, em **outro** terminal, suba **só a API que você usa**:
 
 ```bash
 # Só a api-ktor (Kotlin) — porta 8080
-./gradlew :api-ktor:run
+./gradlew :api-ktor:run                   # atalho: mise run run:api-ktor
 ```
 
 ```bash
 # Só a api-quarkus (Java) — porta 8081, com hot reload
-cd api-quarkus && mvn quarkus:dev -Dquarkus.http.port=8081
+cd api-quarkus && mvn quarkus:dev -Dquarkus.http.port=8081   # atalho: mise run run:api-quarkus
 ```
 
 Para subir **as duas ao mesmo tempo**, rode os dois comandos acima em terminais separados
@@ -68,7 +72,7 @@ Para testar: na aba **Ports** (Portas), abra a porta **8080** (ou **8081**) e ac
 caminho do Swagger — `/swagger` na api-ktor, `/q/swagger-ui` na api-quarkus. Ou, no terminal:
 
 ```bash
-curl -s "localhost:8080/obras?dimensao=ritmo&valor=baiao" | python -m json.tool
+curl -s "localhost:8080/obras?dimensao=ritmo&valor=baiao" | python -m json.tool   # atalho: mise run demo
 ```
 
 A pasta [`http/`](../http/) traz coleções prontas (Bruno, Postman/Insomnia/Hoppscotch e um
@@ -82,13 +86,14 @@ O app desktop usa dados de exemplo em memória — **não precisa das APIs no ar
    pedir senha, é `vscode`.
 2. No terminal do Codespace:
    ```bash
-   DISPLAY=:1 ./gradlew :app:run -Pheadless
+   DISPLAY=:1 ./gradlew :app:run -Pheadless    # atalho: mise run run:app
    ```
    O `-Pheadless` faz o app renderizar por software, já que o noVNC não tem GPU. A janela do
-   MUSI aparece na aba do noVNC e fica aberta até você parar com `Ctrl-C`.
+   MUSI aparece na aba do noVNC e fica aberta até você parar com `Ctrl-C`. O atalho `mise run
+   run:app` detecta o Codespace e já acrescenta o `DISPLAY=:1` e o `-Pheadless` por você.
 3. Para **hot reload** (recompila e recarrega a tela ao salvar):
    ```bash
-   DISPLAY=:1 ./gradlew :app:hotRunJvm -Pheadless
+   DISPLAY=:1 ./gradlew :app:hotRunJvm -Pheadless    # atalho: mise run run:app-hot
    ```
 
 ### Quando o MUSI muda: atualizar o seu Codespace
@@ -142,33 +147,38 @@ erro na aplicação costuma ser o OOM killer — que é o que o `JAVA_TOOL_OPTIO
 
 ## 3. Ferramentas locais — ciclo mais rápido
 
+Aqui os atalhos `mise run` são o caminho principal. Cada um mostra, no comentário, o comando
+completo que ele executa.
+
 ```bash
 curl https://mise.run | sh      # https://mise.jdx.dev
-mise install                    # instala JDK 25, Gradle, Maven, Go e Python
-mise run setup                  # dependências Python dos scripts
-mise run verificar
+mise install                    # instala JDK 25, Gradle, Maven, Go e Python (do mise.toml)
+mise run setup                  # == pip install -r requirements-dev.txt
+mise run verificar              # == ./verificar.sh
 ```
 
 Só uma API, ou as duas, em terminais separados:
 
 ```bash
-mise run run:busca              # Go, porta 9090 (base das duas APIs)
-mise run run:api-ktor           # Kotlin, porta 8080
-mise run run:api-quarkus        # Java, porta 8081, com hot reload
+mise run run:busca              # == cd services && go run ./cmd/servidor        (Go, 9090)
+mise run run:api-ktor           # == ./gradlew :api-ktor:run                     (Kotlin, 8080)
+mise run run:api-quarkus        # == mvn quarkus:dev -Dquarkus.http.port=8081    (Java, 8081)
 ```
 
-A tela do Compose, com GPU local (sem `-Pheadless`):
+A tela do Compose (com GPU local, o `run:app` não precisa do `-Pheadless`):
 
 ```bash
-./gradlew :app:run              # ou :app:hotRunJvm para hot reload
+mise run run:app                # == ./gradlew :app:run         (a tela do Compose)
+mise run run:app-hot            # == ./gradlew :app:hotRunJvm   (hot reload)
 ```
 
 `mise tasks` lista tudo. As mais usadas:
 
-| Tarefa | O que faz |
-|---|---|
-| `mise run verificar` | Tudo que roda sem configuração |
-| `mise run test` | Testes dos três stacks |
-| `mise run ci` | O pipeline inteiro, como no GitHub Actions |
-| `mise run demo` | Uma busca de exemplo contra a api local |
-| `mise run docker:tamanhos` | Tamanho das três imagens |
+| Tarefa | O que faz | Equivale a |
+|---|---|---|
+| `mise run verificar` | Tudo que roda sem configuração | `./verificar.sh` |
+| `mise run test` | Testes dos três stacks | `./gradlew … :app:jvmTest` + `go test` |
+| `mise run ci` | O pipeline inteiro, como no GitHub Actions | os `test:*` em sequência |
+| `mise run run:app` | Sobe a tela do Compose (noVNC no Codespace) | `./gradlew :app:run` |
+| `mise run demo` | Uma busca de exemplo contra a api local | `curl … /obras…` |
+| `mise run docker:tamanhos` | Tamanho das três imagens | `docker build` + `docker images` |
