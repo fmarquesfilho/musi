@@ -1,18 +1,6 @@
 {
   "name": "MUSI — Kotlin, Java e Go",
 
-  "//": [
-    "Ambiente identico para todo mundo, no navegador ou no VS Code local.",
-    "",
-    "GitHub Codespaces: botao `Code` -> `Codespaces` -> `Create codespace`.",
-    "Localmente: VS Code + extensao Dev Containers + Docker Desktop.",
-    "",
-    "Nada precisa ser instalado na maquina do laboratorio.",
-    "",
-    "A feature desktop-lite sobe uma area de trabalho leve (noVNC) na porta 6080,",
-    "para ver a janela do Compose Desktop no navegador — DIM0524. Senha padrao: vscode."
-  ],
-
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
 
   "features": {
