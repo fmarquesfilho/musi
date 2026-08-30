@@ -26,7 +26,7 @@ O backend possui três implementações que respondem ao mesmo contrato (JSON Sc
 1. **Kotlin Multiplatform (KMP) & Compose Multiplatform** (`app/` e `shared/`):
    - `shared/`: Contém a regra de negócios (Domínio). Compartilhado entre a `api-ktor` e o `app`, eliminando duplicação de validações (State of the art).
    - `app/`: Aplicação móvel utilizando **Jetpack Compose / Compose Multiplatform**. O código de UI (`commonMain`) serve tanto para Android e iOS quanto para Desktop (JVM).
-   - **Hot Reload e Cloud IDE**: O app está configurado para rodar nativamente via `jvmRun` em ambientes headless (como o GitHub Codespaces) utilizando noVNC (desktop-lite) para visualização.
+   - **Hot Reload e Cloud IDE**: O app roda em ambientes headless (como o GitHub Codespaces) via `./gradlew :app:run -Pheadless` (ou `:app:hotRunJvm` para hot reload), com noVNC (desktop-lite) para visualização. Ver [`docs/COMO-RODAR.md`](docs/COMO-RODAR.md).
 
 ## Infraestrutura e DevOps
 
