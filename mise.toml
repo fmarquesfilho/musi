@@ -7,9 +7,9 @@
 # ambientes online. Isto serve para trabalhar localmente e para o CI.
 
 [tools]
-java   = "temurin-25"   # espelha libs.versions.toml -> java
+java   = "temurin-25"   # a versao do Java: fonte para o shell/Maven e o VS Code
 go     = "1.27"
-gradle = "8.14"
+# gradle NAO entra aqui: a versao vem do wrapper (./gradlew, gradle-wrapper.properties).
 maven  = "3.9"
 python = "3.12"         # validacao de contratos e verificacao de docs
 buf    = "1.71.0"       # lint/breaking do contrato gRPC e push para o BSR
