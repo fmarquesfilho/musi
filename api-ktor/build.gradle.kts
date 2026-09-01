@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.ktor.server.calllogging)
     implementation(libs.ktor.server.caching)      // Cache-Control
     implementation(libs.ktor.server.conditional)  // ETag e 304
+    implementation(libs.ktor.server.cors)         // CORS: acesso do navegador (Hoppscotch/Swagger em outra origem)
     implementation(libs.ktor.json)
 
     // OpenAPI gerado a partir das rotas, + Swagger UI (ktor-openapi-tools).

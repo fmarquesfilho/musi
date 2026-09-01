@@ -97,6 +97,25 @@ func buscar(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(dominio.Buscar(acervo, f))
 }
 
+// comCORS libera o acesso a partir do navegador (Hoppscotch web, o app Web).
+// Sem estes cabecalhos, uma chamada de outra origem e barrada antes de chegar
+// ao handler, e o preflight OPTIONS nao encontra resposta. Liberal de proposito:
+// servico de leitura, publico e sem credenciais, voltado ao ensino. Numa API
+// com autenticacao, reflita apenas as origens conhecidas.
+func comCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		// Preflight: responde na hora, sem tocar no handler real.
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 // Erro no formato da RFC 9457, como o discutido em aula.
 func problema(w http.ResponseWriter, status int, tipo, detalhe string) {
 	w.Header().Set("Content-Type", "application/problem+json")
@@ -121,7 +140,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:              ":" + porta,
-		Handler:           mux,
+		Handler:           comCORS(mux),
 		ReadHeaderTimeout: 5 * time.Second,
 		// Go 1.27: limita a quantidade de valores por cabecalho, contra
 		// cabecalhos abusivos. Mesma ideia do ReadHeaderTimeout: o servidor

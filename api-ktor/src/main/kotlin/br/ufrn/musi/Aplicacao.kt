@@ -4,6 +4,8 @@ import br.ufrn.musi.adaptadores.web.Problema
 import br.ufrn.musi.adaptadores.web.rotas
 import io.github.smiley4.ktoropenapi.OpenApi
 import io.ktor.http.CacheControl
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.CachingOptions
 import io.ktor.serialization.kotlinx.json.json
@@ -16,6 +18,7 @@ import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.cachingheaders.CachingHeaders
 import io.ktor.server.plugins.conditionalheaders.ConditionalHeaders
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 import org.koin.ktor.plugin.Koin
@@ -39,6 +42,20 @@ fun main() {
 fun Application.modulo(urlBusca: String) {
 
     install(Koin) { modules(modulosDaAplicacao(urlBusca)) }
+
+    // CORS: sem isto, o navegador barra chamadas de outra origem (Hoppscotch web,
+    // Swagger servido de outra porta, o app Compose/Web...) antes de chegarem aqui —
+    // o preflight OPTIONS volta 405 e a resposta não traz Access-Control-Allow-Origin.
+    // anyHost() é liberal de propósito: esta é uma API de LEITURA, pública e sem
+    // credenciais/cookies, voltada ao ensino. Numa API com autenticação, troque por
+    // allowHost(...) com as origens conhecidas.
+    install(CORS) {
+        anyHost()
+        allowMethod(HttpMethod.Options)
+        allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Post)
+        allowHeader(HttpHeaders.ContentType)
+    }
 
     // OpenAPI gerado a partir das rotas documentadas em Rotas.kt.
     // A documentação vive junto da rota, no mesmo DSL — não num arquivo à parte
