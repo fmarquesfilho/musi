@@ -71,3 +71,6 @@ estudo/
 # ---------------------------------------------------------------------------
 benchmark/.servidor-go
 benchmark/.*.log
+
+# Caminho do SDK do Android, especifico de cada maquina (o CI usa ANDROID_HOME).
+local.properties

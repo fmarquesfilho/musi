@@ -1,5 +1,6 @@
 package br.ufrn.musi
 
+import org.koin.dsl.module
 import org.koin.test.verify.verify
 import kotlin.test.Test
 
@@ -11,7 +12,8 @@ import kotlin.test.Test
  * grafo e falha se algo não puder ser resolvido.
  *
  * Não é verificação em tempo de compilação — mas move a descoberta do deploy para o
- * CI, que é onde ela custa menos.
+ * CI, que é onde ela custa menos. Aqui, o grafo de produção SEM banco; o grafo com
+ * PostgreSQL sobe de verdade em IntegracaoPostgresTest.
  *
  * Ver docs/decisoes/0001-stacks-e-estrutura.md, seção Consequências.
  */
@@ -19,8 +21,8 @@ class ModulosTest {
 
     @Test
     fun grafoDeDependenciasResolve() {
-        modulosDaAplicacao("http://localhost:9090").verify(
-            extraTypes = listOf(io.ktor.client.engine.HttpClientEngine::class)
+        module { includes(modulosDaAplicacao("http://localhost:9090", banco = null)) }.verify(
+            extraTypes = listOf(io.ktor.client.engine.HttpClientEngine::class),
         )
     }
 }

@@ -37,11 +37,19 @@ depender destes arquivos.
 
 ## As requisições
 
-Cada coleção traz, por serviço:
+Dois grupos por API, como manda a [ADR-0004](../docs/decisoes/0004-persistencia-postgresql-flyway.md):
+a busca é delegada ao serviço Go, e o CRUD vai ao PostgreSQL.
 
 - **Health** — `GET /health` (Quarkus: `/q/health`)
-- **Busca simples** — `GET /obras?dimensao=ritmo&valor=baiao`
-- **Busca composta** — `POST /obras` com a árvore de filtro no corpo (no Go: `POST /buscar`)
+- **Busca simples** — `GET /busca?dimensao=ritmo&valor=baiao`
+- **Busca composta** — `POST /busca` com a árvore de filtro no corpo (no Go: `POST /buscar`)
+- **CRUD de obras** — `GET /obras` (paginado, com filtros), `POST /obras`, `GET`, `PUT` e
+  `DELETE` em `/obras/{id}`
+- **Anotações da obra** — as mesmas cinco operações em `/obras/{id}/anotacoes`
+
+Os ids das requisições de CRUD são de exemplo (`obra-03`, anotação `1`): troque pelo que a
+listagem, ou o cabeçalho `Location` da criação, devolver. Sem banco configurado, o CRUD
+responde `503` e a busca continua funcionando.
 
 A árvore de filtro segue `contratos/filtro.schema.json`. Exemplo (mpb **ou** forró, **e** até 1970):
 

@@ -1,0 +1,11 @@
+meta {
+  name: Remover obra
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{ktor}}/obras/{{obraId}}
+  body: none
+  auth: none
+}

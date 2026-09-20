@@ -1,0 +1,22 @@
+meta {
+  name: Anotar obra
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{quarkus}}/obras/obra-03/anotacoes
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "faceta": { "dimensao": "ritmo", "valor": "xote" },
+    "curador": "ana"
+  }
+}

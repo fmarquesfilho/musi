@@ -1,6 +1,10 @@
 package br.ufrn.musi.dominio;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * O domínio do MUSI em Java.
@@ -84,4 +88,55 @@ public final class Dominio {
      * A ordenação é sempre declarada por quem consulta — ADR-0002.
      */
     public enum Ordenacao { TITULO, ARTISTA, ANO_CRESCENTE, ANO_DECRESCENTE }
+
+    /**
+     * Uma faceta atribuída a uma obra por um curador identificável — ver docs/DOMINIO.md.
+     * Anotações divergentes de curadores diferentes coexistem.
+     */
+    public record Anotacao(long id, String obraId, Faceta faceta, String curador, Instant criadoEm) {}
+
+    /*
+     * As regras de forma do domínio, as mesmas de contratos/obra.schema.json e de
+     * `Regras` no Dominio.kt. Devolvem a lista de violações em vez de lançar exceção:
+     * quem valida uma entrada quer todas as mensagens de uma vez.
+     */
+    public static final Pattern TERMO = Pattern.compile("^[a-z0-9]+(-[a-z0-9]+)*$");
+    public static final int ANO_MINIMO = 1877;   // o fonógrafo
+    public static final int ANO_MAXIMO = 2100;
+    public static final int TAMANHO_MAXIMO_TEXTO = 300;
+    public static final int TAMANHO_MAXIMO_TERMO = 60;
+    public static final int TAMANHO_MAXIMO_CURADOR = 120;
+
+    public static List<String> violacoes(Faceta f) {
+        var v = new ArrayList<String>();
+        if (!termoValido(f.dimensao()))
+            v.add("dimensão `" + f.dimensao() + "` fora do padrão: minúsculas, sem acento, com hífen");
+        if (!termoValido(f.valor()))
+            v.add("valor `" + f.valor() + "` fora do padrão: minúsculas, sem acento, com hífen");
+        return v;
+    }
+
+    /** Violações dos campos de uma obra, antes de ela ter identidade. */
+    public static List<String> violacoesDaObra(String titulo, String artista, int ano, List<Faceta> facetas) {
+        var v = new ArrayList<String>();
+        if (titulo.isBlank()) v.add("título vazio");
+        if (titulo.length() > TAMANHO_MAXIMO_TEXTO) v.add("título com mais de " + TAMANHO_MAXIMO_TEXTO + " caracteres");
+        if (artista.isBlank()) v.add("artista vazio");
+        if (artista.length() > TAMANHO_MAXIMO_TEXTO) v.add("artista com mais de " + TAMANHO_MAXIMO_TEXTO + " caracteres");
+        if (ano < ANO_MINIMO || ano > ANO_MAXIMO) v.add("ano " + ano + " fora de " + ANO_MINIMO + ".." + ANO_MAXIMO);
+        facetas.forEach(f -> v.addAll(violacoes(f)));
+        if (new HashSet<>(facetas).size() != facetas.size()) v.add("faceta repetida");
+        return v;
+    }
+
+    public static List<String> violacoesDoCurador(String curador) {
+        var v = new ArrayList<String>();
+        if (curador.isBlank()) v.add("curador vazio: toda anotação é assinada");
+        if (curador.length() > TAMANHO_MAXIMO_CURADOR) v.add("curador com mais de " + TAMANHO_MAXIMO_CURADOR + " caracteres");
+        return v;
+    }
+
+    private static boolean termoValido(String termo) {
+        return TERMO.matcher(termo).matches() && termo.length() <= TAMANHO_MAXIMO_TERMO;
+    }
 }

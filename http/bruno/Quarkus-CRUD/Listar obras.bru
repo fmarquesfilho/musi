@@ -1,0 +1,17 @@
+meta {
+  name: Listar obras
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{quarkus}}/obras?pagina=0&tamanho=20&ordem=ano-crescente
+  body: none
+  auth: none
+}
+
+params:query {
+  pagina: 0
+  tamanho: 20
+  ordem: ano-crescente
+}

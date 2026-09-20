@@ -89,6 +89,11 @@ Uma faceta atribuída por alguém identificável.
 Uma obra pode ter anotações divergentes de curadores diferentes, e isso é previsto pelo
 modelo. O catálogo registra quem afirma o quê, sem arbitrar entre as afirmações.
 
+No banco, é uma relação 1:N com chave estrangeira, e a API a expõe como rota aninhada
+(`/obras/{id}/anotacoes`). A única restrição é que o mesmo curador não repete a mesma faceta
+na mesma obra; dois curadores, sim — ver
+[ADR-0004](decisoes/0004-persistencia-postgresql-flyway.md).
+
 ---
 
 ## O que o modelo deliberadamente não tem

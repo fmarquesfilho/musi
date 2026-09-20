@@ -7,7 +7,19 @@ ktor = "3.5.2"
 koin = "4.2.2"
 logback = "1.6.3"
 serialization = "1.11.0"
-smiley4 = "5.7.0"   # OpenAPI gerado a partir das rotas (ktor-openapi-tools)
+exposed = "1.5.0"          # SQL em Kotlin (DSL), sobre JDBC
+hikari = "7.1.0"           # pool de conexoes
+postgresql = "42.7.13"     # driver JDBC
+flyway = "13.7.0"          # migracoes versionadas
+testcontainers = "2.0.5"   # PostgreSQL descartavel nos testes de integracao
+archunit = "1.5.0"         # teste de arquitetura (regra de dependencia)
+agp = "9.1.0"              # Android Gradle Plugin (exige Android Studio Panda 2 ou mais novo)
+navigation = "2.9.2"       # Navigation Compose multiplataforma: rotas tipadas e deep link
+adaptive = "1.2.0"         # classes de tamanho de janela (layout adaptativo)
+activityCompose = "1.9.3"
+android-compileSdk = "37"
+android-minSdk = "24"
+android-targetSdk = "37"
 
 [libraries]
 ktor-server-core        = { module = "io.ktor:ktor-server-core",                version.ref = "ktor" }
@@ -24,8 +36,21 @@ ktor-client-cio         = { module = "io.ktor:ktor-client-cio",                 
 ktor-client-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-json               = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 kotlinx-serialization   = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
-smiley4-openapi         = { module = "io.github.smiley4:ktor-openapi",           version.ref = "smiley4" }
-smiley4-swaggerui       = { module = "io.github.smiley4:ktor-swagger-ui",        version.ref = "smiley4" }
+ktor-server-openapi     = { module = "io.ktor:ktor-server-routing-openapi",     version.ref = "ktor" }
+ktor-server-swagger     = { module = "io.ktor:ktor-server-swagger",             version.ref = "ktor" }
+exposed-core            = { module = "org.jetbrains.exposed:exposed-core",      version.ref = "exposed" }
+exposed-jdbc            = { module = "org.jetbrains.exposed:exposed-jdbc",      version.ref = "exposed" }
+exposed-javatime        = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+hikari                  = { module = "com.zaxxer:HikariCP",                     version.ref = "hikari" }
+postgresql              = { module = "org.postgresql:postgresql",               version.ref = "postgresql" }
+flyway-core             = { module = "org.flywaydb:flyway-core",                version.ref = "flyway" }
+flyway-postgresql       = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+testcontainers-postgres = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
+archunit                = { module = "com.tngtech.archunit:archunit",           version.ref = "archunit" }
+navigation-compose      = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation" }
+material3-adaptive      = { module = "org.jetbrains.compose.material3.adaptive:adaptive",    version.ref = "adaptive" }
+compose-ui-test         = { module = "org.jetbrains.compose.ui:ui-test",        version.ref = "compose" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose",    version.ref = "activityCompose" }
 koin-core               = { module = "io.insert-koin:koin-core",                version.ref = "koin" }
 koin-ktor               = { module = "io.insert-koin:koin-ktor",                version.ref = "koin" }
 koin-test               = { module = "io.insert-koin:koin-test",                version.ref = "koin" }
@@ -39,3 +64,5 @@ ktor                 = { id = "io.ktor.plugin",                           versio
 compose-multiplatform = { id = "org.jetbrains.compose",                  version.ref = "compose" }
 compose-compiler      = { id = "org.jetbrains.kotlin.plugin.compose",    version.ref = "kotlin" }
 versions              = { id = "com.github.ben-manes.versions",          version = "0.53.0" }
+android-application   = { id = "com.android.application",                version.ref = "agp" }
+android-kmp-library   = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }

@@ -1,16 +1,17 @@
 package br.ufrn.musi
 
-import br.ufrn.musi.adaptadores.web.Problema
+import br.ufrn.musi.adaptadores.persistencia.ConfigBanco
+import br.ufrn.musi.adaptadores.persistencia.criarDataSource
+import br.ufrn.musi.adaptadores.persistencia.migrar
 import br.ufrn.musi.adaptadores.web.rotas
-import io.github.smiley4.ktoropenapi.OpenApi
+import br.ufrn.musi.adaptadores.web.tratarErros
 import io.ktor.http.CacheControl
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.CachingOptions
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
@@ -19,8 +20,11 @@ import io.ktor.server.plugins.cachingheaders.CachingHeaders
 import io.ktor.server.plugins.conditionalheaders.ConditionalHeaders
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
+import io.ktor.server.request.httpMethod
+import io.ktor.server.request.path
+import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.koin.core.module.Module
 import org.koin.ktor.plugin.Koin
 
 fun main() {
@@ -29,48 +33,48 @@ fun main() {
 
     // Engine CIO (corrotinas puras): menor footprint que o Netty. Ver docs/BENCHMARK.md.
     embeddedServer(CIO, port = porta, host = "0.0.0.0") {
-        modulo(urlBusca)
+        modulo(urlBusca, ConfigBanco.doAmbiente())
     }.start(wait = true)
 }
 
 /**
- * A configuração da aplicação, em plugins.
+ * Produção: com `DB_URL`, abre o pool, aplica as migrações e liga o CRUD ao PostgreSQL.
+ * Sem `DB_URL` (o Render, até a Sprint 3 — ADR-0004), sobe só com a busca.
+ */
+fun Application.modulo(urlBusca: String, configBanco: ConfigBanco?) {
+    val banco = configBanco?.let { config ->
+        val dataSource = criarDataSource(config)
+        migrar(dataSource)
+        monitor.subscribe(ApplicationStopped) { dataSource.close() }
+        Database.connect(dataSource)
+    }
+    if (banco == null) environment.log.warn("DB_URL ausente: CRUD responde 503; a busca funciona")
+    configurar(modulosDaAplicacao(urlBusca, banco))
+}
+
+/**
+ * A configuração da aplicação, em plugins. Recebe o grafo pronto: os testes de rota
+ * passam repositórios em memória, os de integração, o PostgreSQL do Testcontainers.
  *
  * Cada `install` é uma preocupação transversal, explícita e ordenada. Compare com
  * autoconfiguração por classpath: aqui, o que está ligado está escrito.
  */
-fun Application.modulo(urlBusca: String) {
+fun Application.configurar(modulos: List<Module>) {
 
-    install(Koin) { modules(modulosDaAplicacao(urlBusca)) }
+    install(Koin) { modules(modulos) }
 
     // CORS: sem isto, o navegador barra chamadas de outra origem (Hoppscotch web,
     // Swagger servido de outra porta, o app Compose/Web...) antes de chegarem aqui —
     // o preflight OPTIONS volta 405 e a resposta não traz Access-Control-Allow-Origin.
-    // anyHost() é liberal de propósito: esta é uma API de LEITURA, pública e sem
-    // credenciais/cookies, voltada ao ensino. Numa API com autenticação, troque por
-    // allowHost(...) com as origens conhecidas.
+    // anyHost() é liberal de propósito: API pública, sem credenciais nem cookies, voltada
+    // ao ensino. Com autenticação (entrega final), troque por allowHost(...) com as origens
+    // conhecidas.
     install(CORS) {
         anyHost()
-        allowMethod(HttpMethod.Options)
-        allowMethod(HttpMethod.Get)
-        allowMethod(HttpMethod.Post)
+        listOf(HttpMethod.Options, HttpMethod.Get, HttpMethod.Post, HttpMethod.Put, HttpMethod.Delete)
+            .forEach { allowMethod(it) }
         allowHeader(HttpHeaders.ContentType)
-    }
-
-    // OpenAPI gerado a partir das rotas documentadas em Rotas.kt.
-    // A documentação vive junto da rota, no mesmo DSL — não num arquivo à parte
-    // que pode divergir do código. As rotas de spec e do Swagger UI ficam em Rotas.kt.
-    install(OpenApi) {
-        info {
-            title = "MUSI — API de busca (Ktor)"
-            version = "0.1.0"
-            description = "Fachada de leitura do acervo. A ordenação é sempre " +
-                "declarada por quem consulta, nunca automática (ADR-0002)."
-        }
-        server {
-            url = "http://localhost:8080"
-            description = "Execução local"
-        }
+        exposeHeader(HttpHeaders.Location)
     }
 
     // explicitNulls = false: campos nulos (como `mbid` antes da conciliação) saem do JSON,
@@ -79,41 +83,23 @@ fun Application.modulo(urlBusca: String) {
 
     install(CallLogging)
 
-    // Cache-Control nas respostas de leitura — o assunto da Parte 2 da aula.
+    // Cache-Control só na busca simples (GET /busca): o acervo do Go não muda em execução.
+    // O CRUD muda a cada escrita, então não leva max-age.
     install(CachingHeaders) {
-        options { _, _ ->
-            CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 60))
+        options { call, _ ->
+            if (call.request.httpMethod == HttpMethod.Get && call.request.path() == "/busca")
+                CachingOptions(CacheControl.MaxAge(maxAgeSeconds = 60))
+            else null
         }
     }
 
-    // ETag e o `304` da requisição condicional, sem escrever nada à mão.
+    // Responde `304` a If-None-Match / If-Modified-Since quando a resposta declara versão
+    // (ETag, Last-Modified). Nenhuma rota declara ainda: gerar ETag é a história P2 da
+    // Sprint 2 (docs/proposta.md, seção 3).
     install(ConditionalHeaders)
 
-    // Exceção vira resposta em application/problem+json — RFC 9457.
-    install(StatusPages) {
-        exception<IllegalArgumentException> { call, causa ->
-            call.respond(
-                HttpStatusCode.UnprocessableEntity,
-                Problema(
-                    type = "https://musi.ufrn.br/erros/filtro-invalido",
-                    title = "Filtro inválido",
-                    status = 422,
-                    detail = causa.message,
-                ),
-            )
-        }
-        exception<Throwable> { call, causa ->
-            call.application.environment.log.error("erro não tratado", causa)
-            call.respond(
-                HttpStatusCode.InternalServerError,
-                Problema(
-                    type = "https://musi.ufrn.br/erros/interno",
-                    title = "Erro interno",
-                    status = 500,
-                ),
-            )
-        }
-    }
+    // Exceção vira application/problem+json — RFC 9457. Ver adaptadores/web/Erros.kt.
+    tratarErros()
 
     rotas()
 }

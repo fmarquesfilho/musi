@@ -33,8 +33,10 @@ só. Nada precisa ser instalado à mão.
 ./verificar.sh                    # atalho: mise run verificar
 ```
 
-Roda tudo que funciona sem configuração: contratos, documentação (DIM0510) e os testes de
-Kotlin (`shared`, `api-ktor`, `app`), Java (`api-quarkus`) e Go. Para rodar um stack só:
+Roda contratos, documentação (DIM0510) e os testes de Kotlin (`shared`, `api-ktor`, `app`),
+Java (`api-quarkus`) e Go. Os testes de integração sobem um PostgreSQL 17 num container
+(Testcontainers no Ktor, Dev Services no Quarkus) e precisam do Docker no ar; sem Docker, o
+script pula só esses e avisa. Para rodar um stack só:
 
 ```bash
 ./gradlew :api-ktor:test          # atalho: mise run test:api-ktor     — Kotlin (DIM0547)
@@ -44,6 +46,18 @@ cd services && go test ./...      # atalho: mise run test:go           — Go (D
 ```
 
 ### Subir as APIs (DIM0547)
+
+Duas dependências, cada uma num terminal: o serviço de busca em Go e o PostgreSQL.
+
+```bash
+docker compose up -d musi-banco           # atalho: mise run up          — porta 5432
+```
+
+Sem banco no ar, a API sobe assim mesmo: a busca funciona e o CRUD responde `503`
+([ADR-0004](decisoes/0004-persistencia-postgresql-flyway.md)). Na subida com banco, o Flyway
+cria o esquema e carrega o acervo de exemplo. O `mise run run:api-ktor` já passa `DB_URL`,
+`DB_USER` e `DB_PASSWORD`; em modo dev, a api-quarkus levanta um PostgreSQL próprio (Dev
+Services) e não usa o do compose.
 
 O serviço de busca em Go é a base das duas APIs. Suba-o **uma vez**, num terminal, e deixe
 rodando:
@@ -75,7 +89,16 @@ Para testar: na aba **Ports** (Portas), abra a porta **8080** (ou **8081**) e ac
 caminho do Swagger — `/swagger` na api-ktor, `/q/swagger-ui` na api-quarkus. Ou, no terminal:
 
 ```bash
-curl -s "localhost:8080/obras?dimensao=ritmo&valor=baiao" | python -m json.tool   # atalho: mise run demo
+curl -s "localhost:8080/busca?dimensao=ritmo&valor=baiao" | python -m json.tool   # atalho: mise run demo
+curl -s "localhost:8080/obras?ordem=ano-crescente&tamanho=3" | python -m json.tool
+```
+
+`/busca` é a busca por árvore de filtro, delegada ao serviço Go; `/obras` é o CRUD, no
+PostgreSQL, com as anotações em `/obras/{id}/anotacoes`.
+
+```bash
+curl -si -X POST localhost:8080/obras -H 'Content-Type: application/json' \
+  -d '{"titulo":"Expresso 2222","artista":"Gilberto Gil","ano":1972}' | head -3
 ```
 
 A pasta [`http/`](../http/) traz coleções prontas (Bruno, Postman/Insomnia/Hoppscotch e um
@@ -98,6 +121,32 @@ O app desktop usa dados de exemplo em memória — **não precisa das APIs no ar
    ```bash
    DISPLAY=:1 ./gradlew :app:hotRunJvm -Pheadless    # atalho: mise run run:app-hot
    ```
+
+### Rodar no Android (DIM0524)
+
+O alvo Android é a plataforma declarada na proposta. Ele precisa do **SDK do Android** em
+`ANDROID_HOME` (o Android Studio instala e configura); o alvo desktop e os testes de
+interface não precisam de nada disso.
+
+```bash
+mise run apk                # == ./gradlew :app:assembleDebug
+mise run apk:instalar       # instala no emulador e abre o deep link de exemplo
+```
+
+O `apk:instalar` roda, em sequência:
+
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -a android.intent.action.VIEW -d "musi://obra/obra-03"
+```
+
+O deep link `musi://obra/{id}` abre a obra direto, sem passar pela lista — é a rota
+`DetalheDaObra` do `App.kt`, declarada também no `AndroidManifest.xml`. Com mais de um
+aparelho conectado, escolha um: `ANDROID_SERIAL=emulator-5554 mise run apk:instalar`.
+
+Para ver o layout adaptativo, gire o emulador (`Ctrl+F11`, ou o botão de rotação): em pé, uma
+tela por vez; deitado, acervo e obra lado a lado. É a mesma decisão por largura de janela que
+o desktop usa quando você redimensiona a janela.
 
 ### Quando o MUSI muda: atualizar o seu Codespace
 
@@ -129,19 +178,25 @@ cd musi
 docker compose up --build
 ```
 
-Sobem **três** containers: as duas APIs e o serviço Go. Para subir **só uma API** (com o
-serviço de busca, do qual ela depende):
+Sobem **quatro** containers: o PostgreSQL, as duas APIs e o serviço Go. As duas APIs usam o
+mesmo banco e aplicam as mesmas migrações, então o que uma grava a outra lê
+([ADR-0004](decisoes/0004-persistencia-postgresql-flyway.md)). Para subir **só uma API** (o
+compose traz junto o banco e o serviço de busca, de que ela depende):
 
 ```bash
-docker compose up musi-api-ktor musi-busca       # só Ktor (8080)
-docker compose up musi-api-quarkus musi-busca    # só Quarkus (8081)
+docker compose up musi-api-ktor       # só Ktor (8080)
+docker compose up musi-api-quarkus    # só Quarkus (8081)
 ```
 
 | Serviço | Porta | Teste |
 |---|---|---|
-| `api-ktor` (Kotlin) | 8080 | `curl -s "localhost:8080/obras?dimensao=ritmo&valor=baiao"` |
-| `api-quarkus` (Java) | 8081 | `curl -s "localhost:8081/obras?dimensao=ritmo&valor=baiao"` |
+| `api-ktor` (Kotlin) | 8080 | `curl -s "localhost:8080/obras?tamanho=3"` |
+| `api-quarkus` (Java) | 8081 | `curl -s "localhost:8081/obras?tamanho=3"` |
 | `busca` (Go) | 9090 | `curl -s localhost:9090/health` |
+| `banco` (PostgreSQL 17) | 5432 | `docker compose exec musi-banco psql -U musi -c '\dt'` |
+
+Os dados ficam no volume `musi-dados` e sobrevivem a `docker compose down`. Para recomeçar do
+acervo de exemplo: `docker compose down -v`.
 
 O `mem_limit: 512m` reproduz o limite da instância gratuita do Render. Container que morre sem
 erro na aplicação costuma ser o OOM killer — que é o que o `JAVA_TOOL_OPTIONS` evita.
@@ -163,6 +218,7 @@ mise run verificar              # == ./verificar.sh
 Só uma API, ou as duas, em terminais separados:
 
 ```bash
+mise run up                     # == docker compose up -d musi-banco             (PostgreSQL, 5432)
 mise run run:busca              # == cd services && go run ./cmd/servidor        (Go, 9090)
 mise run run:api-ktor           # == ./gradlew :api-ktor:run                     (Kotlin, 8080)
 mise run run:api-quarkus        # == mvn quarkus:dev -Dquarkus.http.port=8081    (Java, 8081)
@@ -183,5 +239,6 @@ mise run run:app-hot            # == ./gradlew :app:hotRunJvm   (hot reload)
 | `mise run test` | Testes dos três stacks | `./gradlew … :app:jvmTest` + `go test` |
 | `mise run ci` | O pipeline inteiro, como no GitHub Actions | os `test:*` em sequência |
 | `mise run run:app` | Sobe a tela do Compose (noVNC no Codespace) | `./gradlew :app:run` |
-| `mise run demo` | Uma busca de exemplo contra a api local | `curl … /obras…` |
+| `mise run up` | Sobe o PostgreSQL do compose | `docker compose up -d musi-banco` |
+| `mise run demo` | Uma busca de exemplo contra a api local | `curl … /busca…` |
 | `mise run docker:tamanhos` | Tamanho das três imagens | `docker build` + `docker images` |

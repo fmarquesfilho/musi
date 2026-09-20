@@ -1,5 +1,7 @@
 package br.ufrn.musi.dominio
 
+import kotlin.time.Instant
+
 /**
  * O domínio do MUSI em Kotlin.
  *
@@ -78,3 +80,57 @@ fun List<Obra>.buscar(filtro: Filtro, ordenacao: Ordenacao = Ordenacao.TITULO): 
             Ordenacao.ANO_DECRESCENTE -> compareByDescending { it.ano }
         }
     )
+
+/**
+ * Uma faceta atribuída a uma obra por um curador identificável — ver docs/DOMINIO.md.
+ *
+ * Anotações divergentes de curadores diferentes coexistem: o catálogo registra quem afirma
+ * o quê, sem arbitrar entre as afirmações. `criadoEm` é o instante da anotação; a
+ * representação (ISO-8601) é decisão de quem serializa.
+ */
+data class Anotacao(
+    val id: Long,
+    val obraId: String,
+    val faceta: Faceta,
+    val curador: String,
+    val criadoEm: Instant,
+)
+
+/**
+ * As regras de forma do domínio, as mesmas de contratos/obra.schema.json.
+ *
+ * Devolvem a lista de violações em vez de lançar exceção: quem valida uma entrada quer
+ * todas as mensagens de uma vez, não a primeira.
+ */
+object Regras {
+    /** Minúsculas, sem acento, com hífen — docs/GLOSSARIO.md. */
+    val TERMO = Regex("^[a-z0-9]+(-[a-z0-9]+)*$")
+    const val ANO_MINIMO = 1877       // o fonógrafo
+    const val ANO_MAXIMO = 2100
+    const val TAMANHO_MAXIMO_TEXTO = 300
+    const val TAMANHO_MAXIMO_TERMO = 60
+    const val TAMANHO_MAXIMO_CURADOR = 120
+}
+
+fun Faceta.violacoes(): List<String> = buildList {
+    if (!Regras.TERMO.matches(dimensao) || dimensao.length > Regras.TAMANHO_MAXIMO_TERMO)
+        add("dimensão `$dimensao` fora do padrão: minúsculas, sem acento, com hífen")
+    if (!Regras.TERMO.matches(valor) || valor.length > Regras.TAMANHO_MAXIMO_TERMO)
+        add("valor `$valor` fora do padrão: minúsculas, sem acento, com hífen")
+}
+
+/** Violações dos campos de uma obra, antes de ela ter identidade. */
+fun violacoesDaObra(titulo: String, artista: String, ano: Int, facetas: List<Faceta>): List<String> = buildList {
+    if (titulo.isBlank()) add("título vazio")
+    if (titulo.length > Regras.TAMANHO_MAXIMO_TEXTO) add("título com mais de ${Regras.TAMANHO_MAXIMO_TEXTO} caracteres")
+    if (artista.isBlank()) add("artista vazio")
+    if (artista.length > Regras.TAMANHO_MAXIMO_TEXTO) add("artista com mais de ${Regras.TAMANHO_MAXIMO_TEXTO} caracteres")
+    if (ano !in Regras.ANO_MINIMO..Regras.ANO_MAXIMO) add("ano $ano fora de ${Regras.ANO_MINIMO}..${Regras.ANO_MAXIMO}")
+    facetas.forEach { addAll(it.violacoes()) }
+    if (facetas.size != facetas.toSet().size) add("faceta repetida")
+}
+
+fun violacoesDoCurador(curador: String): List<String> = buildList {
+    if (curador.isBlank()) add("curador vazio: toda anotação é assinada")
+    if (curador.length > Regras.TAMANHO_MAXIMO_CURADOR) add("curador com mais de ${Regras.TAMANHO_MAXIMO_CURADOR} caracteres")
+}

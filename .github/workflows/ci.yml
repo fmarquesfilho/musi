@@ -3,7 +3,7 @@
 # =============================================================================
 #
 # TRÊS stacks no mesmo repositório: Kotlin, Java e Go.
-# Um arquivo, um job por componente. Ver docs/decisoes/0006-ci-por-componente.md.
+# Um arquivo, um job por componente. Ver docs/decisoes/0001-stacks-e-estrutura.md.
 #
 # COMO LER, conforme a sua disciplina:
 #   DIM0510 (Processos)  → o job `docs` e a seção `on:`
@@ -51,6 +51,13 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: services/go.mod
+
+      # O :app tem alvo Android (DIM0524): assemble e lint precisam da plataforma do SDK.
+      # Os testes de interface NÃO precisam — rodam no alvo JVM (desktop).
+      - name: SDK do Android
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-37.0 build-tools;36.0.0'   # o id do pacote tem o `.0`
 
       - name: Kotlin
         run: gradle :shared:build :api-ktor:build :app:build -x test
@@ -137,7 +144,11 @@ jobs:
   #
   # O módulo `shared` contém o domínio, importado por `app`. Seu `commonMain`
   # não tem acesso a Ktor, Koin nem Compose: o compilador do módulo
-  # multiplataforma garante a regra de dependência.
+  # multiplataforma garante a regra de dependência. O ArquiteturaTest da
+  # api-ktor (ArchUnit) cobre também a camada de aplicação.
+  #
+  # Os testes de integração sobem um PostgreSQL 17 com Testcontainers: o runner
+  # Linux do Actions tem Docker, e nada muda em relação à máquina local (ADR-0004).
   # ---------------------------------------------------------------------------
   kotlin:
     needs: contratos
@@ -150,11 +161,23 @@ jobs:
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Testes
+      # Os testes de interface do Compose rodam sem tela, mas o Skia precisa destas
+      # bibliotecas no Linux; sem elas, UnsatisfiedLinkError em libGL.so.1.
+      - name: Bibliotecas nativas do Skia
+        run: sudo apt-get update && sudo apt-get install -y libgl1 libegl1 libfontconfig1
+
+      - name: Testes (unitários, rotas, arquitetura, integração e interface)
         run: gradle :shared:jvmTest :api-ktor:test :app:jvmTest
 
-      # A partir da Sprint 1:
-      # - run: gradle ktlintCheck detekt
+      # O :app tem alvo Android (DIM0524): assemble e lint precisam da plataforma do SDK.
+      # Os testes de interface NÃO precisam — rodam no alvo JVM (desktop).
+      - name: SDK do Android
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-37.0 build-tools;36.0.0'   # o id do pacote tem o `.0`
+
+      - name: APK de debug (alvo Android)
+        run: gradle :app:assembleDebug
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -173,8 +196,11 @@ jobs:
   # ===========================================================================
   #
   # O domínio em Java é uma REESCRITA do domínio Kotlin, deliberadamente — ver
-  # ADR-0010. Os testes deste job rodam os MESMOS casos de contratos/exemplos/
+  # ADR-0001. Os testes deste job rodam os MESMOS casos de contratos/exemplos/
   # que o job `kotlin`. Se os dois discordarem, uma implementação está errada.
+  #
+  # Os @QuarkusTest sobem um PostgreSQL 17 pelo Dev Services (Testcontainers por
+  # baixo). O ArquiteturaTest (ArchUnit) verifica a regra de dependência.
   # ---------------------------------------------------------------------------
   java:
     needs: contratos
@@ -187,12 +213,9 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Testes
+      - name: Testes (unitários, arquitetura e integração com PostgreSQL)
         working-directory: api-quarkus
         run: mvn -B -ntp test
-
-      # A partir da Sprint 1: ArchUnit verifica a regra de dependência.
-      #   "nenhuma classe de ..dominio.. depende de ..adaptadores.. nem de io.quarkus"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -274,16 +297,20 @@ jobs:
       - name: Links internos não quebrados
         run: python docs/verificar_links.py
 
-      # ADR-0004 — nenhum escalar de qualidade no modelo.
+      # ADR-0004 — as duas APIs aplicam as MESMAS migrações no mesmo banco.
+      - name: Migrações iguais nas duas APIs (ADR-0004)
+        run: diff -r api-ktor/src/main/resources/db/migration api-quarkus/src/main/resources/db/migration
+
+      # ADR-0002 — nenhum escalar de qualidade no modelo.
       # Verificação simples por opção: cobre os casos comuns e falha rápido.
       # Vale discutir em aula quais situações ela não alcança.
-      - name: Nenhum escalar de qualidade (ADR-0004)
+      - name: Nenhum escalar de qualidade (ADR-0002)
         run: |
           if grep -rEni --include='*.kt' --include='*.java' --include='*.go' \
                --include='*.proto' --include='*.json' \
                '\b(score|rating|relevance|popularity|ranking)\b' \
                shared api-ktor api-quarkus app services contratos 2>/dev/null; then
-            echo "::error::Escalar de qualidade encontrado. Ver docs/decisoes/0004-sem-ranking.md"
+            echo "::error::Escalar de qualidade encontrado. Ver docs/decisoes/0002-modelo-de-dominio.md"
             exit 1
           fi
           echo "OK: nenhum escalar de qualidade encontrado."

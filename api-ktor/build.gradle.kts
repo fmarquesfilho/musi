@@ -30,10 +30,10 @@ dependencies {
     implementation(libs.ktor.server.cors)         // CORS: acesso do navegador (Hoppscotch/Swagger em outra origem)
     implementation(libs.ktor.json)
 
-    // OpenAPI gerado a partir das rotas, + Swagger UI (ktor-openapi-tools).
-    // O spec sai do próprio código, como no lado Quarkus — não de um arquivo à mão.
-    implementation(libs.smiley4.openapi)
-    implementation(libs.smiley4.swaggerui)
+    // OpenAPI gerado das rotas (`describe`), + Swagger UI. Os dois são do próprio Ktor.
+    // O spec sai do código, como no lado Quarkus — não de um arquivo à mão.
+    implementation(libs.ktor.server.openapi)
+    implementation(libs.ktor.server.swagger)
 
     // Ktor Client - o MESMO que o app usa para falar com esta api
     implementation(libs.ktor.client.core)
@@ -43,11 +43,28 @@ dependencies {
     implementation(libs.koin.ktor)
     implementation(libs.logback)
 
-    // Sprint 2: Postgres no Neon. Descomente junto com BancoNeon.kt.
-    // implementation("com.zaxxer:HikariCP:6.3.0")
-    // implementation("org.postgresql:postgresql:42.7.7")
+    // Persistência: Exposed (SQL em Kotlin), driver JDBC, pool e migrações.
+    // O PostgreSQL é local (docker compose) e do CI até a Sprint 3 — ADR-0004.
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.javatime)
+    implementation(libs.postgresql)
+    implementation(libs.hikari)
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.postgresql)
 
     testImplementation(kotlin("test"))
     testImplementation(libs.ktor.server.testhost)
     testImplementation(libs.koin.test)
+    testImplementation(libs.testcontainers.postgres)   // PostgreSQL descartável, num container
+    testImplementation(libs.archunit)                  // regra de dependência, como teste
+}
+
+// Os testes de integração (tag `integracao`) sobem um PostgreSQL com Testcontainers e
+// precisam de Docker. `-PsemDocker` os deixa de fora — é o que o verificar.sh faz quando
+// não encontra Docker. O CI roda todos.
+tasks.test {
+    useJUnitPlatform {
+        if (project.hasProperty("semDocker")) excludeTags("integracao")
+    }
 }

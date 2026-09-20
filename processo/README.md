@@ -9,6 +9,11 @@ equipes.
 | [`definicao-de-pronto.md`](definicao-de-pronto.md) | DoR e DoD, por tipo de item |
 | [`rituais.md`](rituais.md) | Planejamento, revisão e retrospectiva |
 | [`GITHUB-PROJECTS-SETUP.md`](GITHUB-PROJECTS-SETUP.md) | Passo a passo para montar o quadro |
+| [`metricas-01.md`](metricas-01.md) | Métricas de fluxo do próprio MUSI, com o comando de cada número |
+| [`retrospectiva-01.md`](retrospectiva-01.md) | A primeira retrospectiva: fatos, causas, ações e revisão do acordo |
+
+Os quatro primeiros descrevem como o trabalho **deveria** correr; os dois últimos medem como
+ele correu de fato, e ajustam o acordo onde a realidade o contrariou.
 
 > Você não precisa ler o código do projeto para trabalhar com estes documentos. Se quiser, o
 > mapa está no [README raiz](../README.md).
