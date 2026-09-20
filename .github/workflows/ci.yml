@@ -57,7 +57,7 @@ jobs:
       - name: SDK do Android
         uses: android-actions/setup-android@v3
         with:
-          packages: 'platforms;android-37 build-tools;36.0.0'
+          packages: 'platforms;android-37.0 build-tools;36.0.0'   # o id do pacote tem o `.0`
 
       - name: Kotlin
         run: gradle :shared:build :api-ktor:build :app:build -x test
@@ -174,7 +174,7 @@ jobs:
       - name: SDK do Android
         uses: android-actions/setup-android@v3
         with:
-          packages: 'platforms;android-37 build-tools;36.0.0'
+          packages: 'platforms;android-37.0 build-tools;36.0.0'   # o id do pacote tem o `.0`
 
       - name: APK de debug (alvo Android)
         run: gradle :app:assembleDebug
