@@ -8,7 +8,8 @@ certa à mão, e que atualizar não dependa de serviço externo.
 | O quê | Onde | Quem lê |
 |---|---|---|
 | Java | `gradle/libs.versions.toml`, chave `java` | toolchain do Gradle e o `pom.xml` |
-| Kotlin, Ktor, Koin, Compose | `gradle/libs.versions.toml` | os módulos Gradle |
+| Kotlin, Ktor, Koin, Compose, Exposed, Flyway, Testcontainers, ArchUnit | `gradle/libs.versions.toml` | os módulos Gradle |
+| PostgreSQL | `docker-compose.yml` e os testes de integração (imagem `postgres:17-alpine`) | Docker |
 | Quarkus | `api-quarkus/pom.xml`, `quarkus.platform.version` | Maven |
 | Go | `services/go.mod` | Go |
 | Ferramentas de linha de comando | `mise.toml` | mise |

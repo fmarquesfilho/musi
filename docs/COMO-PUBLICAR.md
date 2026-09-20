@@ -35,18 +35,27 @@ O `musi-busca` sobe primeiro, porque as APIs dependem da URL dele.
 |---|---|---|
 | `MUSI_BUSCA_URL` | a URL pública do serviço Go | painel |
 | `JAVA_TOOL_OPTIONS` | `-Xmx300m -Xms150m` | já vem do `render.yaml` |
-| `DATABASE_URL` | string de conexão do Neon | painel, na Sprint 2 |
+| `MUSI_COM_BANCO` | `false` (só api-quarkus) | já vem do `render.yaml`, até a Sprint 3 |
+| `DB_URL`, `DB_USER`, `DB_PASSWORD` | conexão do Neon, em formato JDBC | painel, na Sprint 3 |
 
-### Banco: Neon, não Render
+### Banco: por enquanto, nenhum
+
+Até a Sprint 3, o deploy no Render não tem banco ([ADR-0004](decisoes/0004-persistencia-postgresql-flyway.md)).
+As duas APIs sobem assim mesmo: `/health` e a busca (`/busca`) funcionam, e o CRUD de obras e
+anotações responde `503` em *problem details*. O PostgreSQL existe no `docker compose` e no CI.
+
+### Banco: Neon, não Render (Sprint 3)
 
 O Postgres gratuito do Render **expira em 30 dias** e apaga os dados. Use o Neon:
 
 1. Conta gratuita em `neon.tech`, sem cartão
 2. Crie um projeto, copie a *connection string*
-3. Cole em `DATABASE_URL`, no painel do Render
+3. Converta para JDBC (`jdbc:postgresql://host/base?sslmode=require`) e cole em `DB_URL`; usuário
+   e senha em `DB_USER` e `DB_PASSWORD`, no painel do Render
+4. Na api-quarkus, remova `MUSI_COM_BANCO`
 
 O Neon limita conexões concorrentes no plano gratuito, então o pool fica em 5, já configurado
-nos dois `application.properties`.
+nas duas APIs (`Banco.kt` e `application.properties`).
 
 ---
 

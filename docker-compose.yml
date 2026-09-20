@@ -1,16 +1,35 @@
 # MUSI - orquestracao local, com Docker Desktop.
 #
 #   docker compose up --build
-#   curl -s "localhost:8080/obras?dimensao=ritmo&valor=baiao" | jq   # Kotlin
-#   curl -s "localhost:8081/obras?dimensao=ritmo&valor=baiao" | jq   # Java
+#   curl -s "localhost:8080/obras?dimensao=ritmo&valor=baiao" | jq    # CRUD, Kotlin
+#   curl -s "localhost:8081/obras?dimensao=ritmo&valor=baiao" | jq    # CRUD, Java
+#   curl -s "localhost:8080/busca?dimensao=ritmo&valor=baiao" | jq    # busca, via Go
 #
-# As duas APIs sobem juntas, contra o mesmo servico Go.
+# As duas APIs sobem juntas, contra o MESMO banco e o mesmo servico Go. As migracoes
+# das duas sao identicas (ADR-0004): o que uma grava, a outra le.
 #
 # Se voce so quer uma delas:
-#   docker compose up musi-api-ktor musi-busca
-#   docker compose up musi-api-quarkus musi-busca
+#   docker compose up musi-api-ktor
+#   docker compose up musi-api-quarkus
+# So o banco, para rodar a API pelo Gradle/Maven (mise run run:api-ktor):
+#   docker compose up -d musi-banco
 
 services:
+  musi-banco:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: musi
+      POSTGRES_USER: musi
+      POSTGRES_PASSWORD: musi       # so desenvolvimento; em producao vem de segredo (Sprint 3)
+    ports: ["5432:5432"]
+    volumes: [musi-dados:/var/lib/postgresql/data]
+    healthcheck:                   # as APIs so sobem com o banco aceitando conexao
+      test: ["CMD-SHELL", "pg_isready -U musi -d musi"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    mem_limit: 256m
+
   musi-api-ktor:
     build:
       context: .                 # a raiz: o modulo :api-ktor depende de :shared
@@ -18,9 +37,14 @@ services:
     ports: ["8080:8080"]
     environment:
       MUSI_BUSCA_URL: http://musi-busca:9090
+      DB_URL: jdbc:postgresql://musi-banco:5432/musi
+      DB_USER: musi
+      DB_PASSWORD: musi
       JAVA_TOOL_OPTIONS: "-Xmx300m -Xms150m"
     mem_limit: 512m              # reproduz o limite da instancia onde roda em produção
-    depends_on: [musi-busca]
+    depends_on:
+      musi-busca: { condition: service_started }
+      musi-banco: { condition: service_healthy }
 
   musi-api-quarkus:
     build:
@@ -28,9 +52,14 @@ services:
     ports: ["8081:8080"]
     environment:
       MUSI_BUSCA_URL: http://musi-busca:9090
+      DB_URL: jdbc:postgresql://musi-banco:5432/musi
+      DB_USER: musi
+      DB_PASSWORD: musi
       JAVA_TOOL_OPTIONS: "-Xmx300m -Xms150m"
     mem_limit: 512m
-    depends_on: [musi-busca]
+    depends_on:
+      musi-busca: { condition: service_started }
+      musi-banco: { condition: service_healthy }
 
   musi-busca:
     build:
@@ -39,3 +68,6 @@ services:
     environment:
       PORT: "9090"
     mem_limit: 256m
+
+volumes:
+  musi-dados:

@@ -1,0 +1,27 @@
+meta {
+  name: Criar obra
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{quarkus}}/obras
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "titulo": "Expresso 2222",
+    "artista": "Gilberto Gil",
+    "ano": 1972,
+    "facetas": [
+      { "dimensao": "genero", "valor": "mpb" },
+      { "dimensao": "ritmo", "valor": "baiao" }
+    ]
+  }
+}

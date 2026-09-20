@@ -46,7 +46,7 @@ run_case() { # nome porta health load_cmd -- start_cmd...
 }
 
 FILTRO='{"tipo":"tem","dimensao":"ritmo","valor":"baiao"}'
-loadhttp() { for _ in $(seq 1 100); do curl -fs -o /dev/null "$1/obras" 2>/dev/null; done; }
+loadhttp() { for _ in $(seq 1 100); do curl -fs -o /dev/null "$1/busca?dimensao=ritmo&valor=baiao" 2>/dev/null; done; }
 loadgo()   { for _ in $(seq 1 100); do curl -fs -o /dev/null -XPOST http://localhost:9090/buscar -H 'content-type: application/json' -d "$FILTRO"; done; }
 
 # --- execucao ---------------------------------------------------------------

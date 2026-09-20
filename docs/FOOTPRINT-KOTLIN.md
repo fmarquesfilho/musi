@@ -47,8 +47,8 @@ trabalho para o build**, o que também é o que viabiliza *native image*:
 Onde o Ktor se encaixa: ele **já usa kotlinx-serialization (sem reflexão)**, o que ajuda. Mas
 o suporte a GraalVM tem duas restrições concretas: **exige o engine CIO (Netty não é
 suportado)** e **exige configuração de reflexão para dependências Java de terceiros** — no
-MUSI, a lib de OpenAPI (`smiley4`) é o candidato a dar trabalho. Ktor nativo é possível, mas
-não é *"compila e pronto"*.
+MUSI, os candidatos a dar trabalho são o driver JDBC do PostgreSQL e o Flyway. Ktor nativo é
+possível, mas não é *"compila e pronto"*.
 
 ## Como reduzir o footprint em Kotlin — do mais barato ao mais radical
 

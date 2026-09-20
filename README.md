@@ -33,7 +33,7 @@ quem monta os critérios.
 
 ---
 
-## Este projeto é o exemplo da Sprint 0
+## Este projeto é o exemplo das Sprints 0 e 1
 
 O MUSI implementa o que `docs/SPRINT-0.md` das três disciplinas pede:
 
@@ -44,14 +44,45 @@ O MUSI implementa o que `docs/SPRINT-0.md` das três disciplinas pede:
 | Divisão Kotlin × Go, com justificativa | `docs/proposta.md` §4.1 | DIM0547 |
 | Plataforma-alvo e backend | `docs/proposta.md` §4.2 | DIM0524 |
 | Acordo de processo | [`processo/acordo-de-processo.md`](processo/acordo-de-processo.md) | DIM0510 |
-| Decisões registradas | [`docs/decisoes/`](docs/decisoes/) — 3 ADRs | as três |
+| Decisões registradas | [`docs/decisoes/`](docs/decisoes/) — 4 ADRs | as três |
+
+E, da Sprint 1, o que `docs/SPRINT-1.md` de DIM0547 pede:
+
+| Critério da rubrica | Onde |
+|---|---|
+| CRUD de duas entidades com relacionamento | `Obra` 1:N `Anotação`: `/obras` e `/obras/{id}/anotacoes`, nas duas APIs |
+| Paginação e filtros no SQL | `?pagina=&tamanho=&ordem=&artista=&anoDe=&anoAte=&dimensao=&valor=` |
+| Persistência e migrações | PostgreSQL 17 e Flyway, esquema só por migração — [ADR-0004](docs/decisoes/0004-persistencia-postgresql-flyway.md) |
+| Clean Architecture com verificação | `ArquiteturaTest` (ArchUnit) nos dois stacks, rodando no CI |
+| Testes local e remoto | Testcontainers (Ktor) e Dev Services (Quarkus), iguais na máquina e no CI |
+| Validação, erros e OpenAPI | *problem details* (RFC 9457) e OpenAPI gerado do código |
+
+A busca por árvore de filtro continua delegada ao serviço Go, agora em `/busca`.
+
+E, de DIM0524, o app com o alvo Android ligado:
+
+| Critério da rubrica | Onde |
+|---|---|
+| Telas do MVP, com componentes próprios | `TelaAcervo` e `TelaObra`, em [`app/src/commonMain`](app/src/commonMain/kotlin/br/ufrn/musi/ui/) |
+| Navegação com rotas tipadas e deep link | `App.kt`: rotas `Acervo` e `DetalheDaObra(id)`; `musi://obra/{id}` |
+| Tema, responsividade e adaptatividade | Material 3 claro e escuro; janela estreita navega, janela larga mostra acervo e obra lado a lado |
+| Acessibilidade | títulos com `heading()`, cartão inteiro como alvo de toque, papéis de cor do tema |
+| Testes de interface | 8 em [`TelasTest.kt`](app/src/commonTest/kotlin/br/ufrn/musi/ui/TelasTest.kt), no alvo desktop, rodando no CI |
+
+E, de DIM0510, a retrospectiva e as métricas de fluxo, tiradas do histórico real deste
+repositório — commits, pull requests, quadro e CI:
+
+| Artefato | Onde |
+|---|---|
+| Retrospectiva com fatos, causas e ações | [`processo/retrospectiva-01.md`](processo/retrospectiva-01.md) |
+| Métricas de fluxo, com o comando de cada número | [`processo/metricas-01.md`](processo/metricas-01.md) |
 
 Copiem a estrutura, não a extensão: a proposta de vocês cabe em 5 páginas.
 
 ## Como rodar
 
 ```bash
-docker compose up --build     # as duas APIs e o serviço Go
+docker compose up --build     # PostgreSQL, as duas APIs e o serviço Go
 ```
 
 Codespaces (incluindo acesso noVNC para a interface gráfica), Docker e Render em [`docs/COMO-RODAR.md`](docs/COMO-RODAR.md). A visão geral da stack em [`STACK.md`](STACK.md) e versões em [`docs/VERSOES.md`](docs/VERSOES.md). Publicação em
@@ -70,10 +101,10 @@ musi/
 │   └── exemplos/             casos de teste comuns aos três componentes
 ├── buf.yaml         módulo do contrato gRPC no BSR      → DIM0547
 ├── shared/          o domínio, em Kotlin — usado por api E app
-├── api-ktor/        Kotlin · Ktor · Koin                → DIM0547
-├── api-quarkus/     Java 25 · Quarkus · CDI             → DIM0547
+├── api-ktor/        Kotlin · Ktor · Koin · Exposed       → DIM0547
+├── api-quarkus/     Java 25 · Quarkus · CDI · Panache    → DIM0547
 ├── services/        Go — busca/ e conciliacao/          → DIM0547
-├── app/             Kotlin Multiplatform · Compose     → DIM0524
+├── app/             Kotlin Multiplatform · Compose · Android → DIM0524
 ├── http/            coleções p/ testar as APIs (Bruno, Postman, .http) → DIM0547
 ├── exercicios/      exercícios de aula, por disciplina
 ├── .github/workflows/ci.yml    pipeline único, jobs independentes
@@ -92,6 +123,7 @@ grupo escolhe uma. Ver [ADR-0001](docs/decisoes/0001-stacks-e-estrutura.md).
 | Injeção de dependência | Koin, em execução | CDI, **na compilação** |
 | Rotas | código, numa árvore | anotações |
 | Cliente do Go | classe com `HttpClient` | interface declarativa |
+| Acesso a dados | Exposed, o SQL num DSL | Panache, entidades JPA |
 | Domínio | vem de `shared/` | reescrito em `dominio/` |
 
 A duplicação do domínio é proposital: importar o módulo Kotlin no lado Java anularia a
@@ -111,7 +143,8 @@ sincronia por testes: agora é um arquivo.
 ```
 
 `commonMain` não tem acesso a Ktor, Koin nem Compose: o compilador do módulo
-multiplataforma garante a regra de dependência sem teste de arquitetura.
+multiplataforma garante a regra de dependência sem teste de arquitetura. Da camada de
+aplicação para fora, quem garante é o `ArquiteturaTest` (ArchUnit), nos dois stacks.
 
 ## O domínio, em quatro tipos
 
@@ -145,13 +178,15 @@ por disciplina:
 
 | Componente | Onde | Custo | Cartão de crédito |
 |---|---|---|---|
-| `api/` e `services/` | Render, instância `free` | R$ 0 | **não** |
-| Postgres | Neon, plano gratuito | R$ 0 | **não** |
+| `api-ktor/`, `api-quarkus/` e `services/` | Render, instância `free` | R$ 0 | **não** |
+| Postgres | local no `docker compose`; Neon a partir da Sprint 3 | R$ 0 | **não** |
 
 Descrito em [`render.yaml`](render.yaml): um `git push` na `main` reimplanta o que mudou.
 
-O banco fica no **Neon**, e não no Render, porque o Postgres gratuito do Render expira 30
-dias após a criação e os dados são apagados.
+Até a Sprint 3 o deploy vai **sem banco**: as APIs sobem, a busca funciona e o CRUD responde
+`503` ([ADR-0004](docs/decisoes/0004-persistencia-postgresql-flyway.md)). O PostgreSQL fica no
+`docker compose` e no CI. Quando entrar, o banco será o **Neon**, e não o Render, porque o
+Postgres gratuito do Render expira 30 dias após a criação e os dados são apagados.
 
 > Duas limitações a conhecer: no Render, o serviço hiberna após 15 minutos sem tráfego e a
 > primeira requisição depois disso leva cerca de um minuto; no Neon, a computação também
@@ -163,8 +198,9 @@ Localmente, com [`mise`](https://mise.jdx.dev):
 mise run verificar     # tudo que roda sem configuração
 mise run ci            # o pipeline inteiro, como no GitHub Actions
 
+mise run up            # sobe o PostgreSQL na 5432
 mise run run:busca     # sobe o serviço Go na 9090
-mise run run:api       # sobe a api Micronaut na 8080
+mise run run:api-ktor  # sobe a api Ktor na 8080
 mise run demo          # uma busca de exemplo
 
 mise tasks             # a lista completa

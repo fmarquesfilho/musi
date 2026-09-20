@@ -39,9 +39,10 @@ run = [
 ]
 
 [tasks.test]
-description = "Roda os testes dos dois stacks"
+description = "Roda os testes dos tres stacks (os de integracao precisam de Docker)"
 run = [
   "./gradlew :shared:jvmTest :api-ktor:test :app:jvmTest",
+  "cd api-quarkus && mvn -B -ntp test",
   "cd services && go test ./...",
 ]
 
@@ -80,8 +81,23 @@ description = "Lint e build do contrato gRPC no BSR (DIM0547)"
 run = ["buf lint", "buf build"]
 
 [tasks."test:app"]
-description = "Testes do app (DIM0524)"
+description = "Testes de interface do app, no alvo desktop (DIM0524)"
 run = "./gradlew :app:jvmTest"
+
+# Precisa do SDK do Android em ANDROID_HOME. Os testes de interface nao precisam.
+[tasks."apk"]
+description = "Gera o APK de debug do app (DIM0524)"
+run = "./gradlew :app:assembleDebug"
+
+# Com mais de um aparelho/emulador conectado, o adb exige escolher:
+#   ANDROID_SERIAL=emulator-5554 mise run apk:instalar
+[tasks."apk:instalar"]
+description = "Instala o APK no emulador/aparelho conectado e abre o deep link de exemplo"
+depends = ["apk"]
+run = [
+  "adb install -r app/build/outputs/apk/debug/app-debug.apk",
+  'adb shell am start -a android.intent.action.VIEW -d "musi://obra/obra-03"',
+]
 
 [tasks.ci]
 description = "Reproduz localmente o pipeline do GitHub Actions"
@@ -113,12 +129,18 @@ description = "Sobe o servico Go na porta 9090"
 dir = "services"
 run = "go run ./cmd/servidor"
 
+[tasks.up]
+description = "Sobe o PostgreSQL 17 do docker compose (volume nomeado musi-dados)"
+run = "docker compose up -d musi-banco"
+
 [tasks."run:api-ktor"]
-description = "Sobe a api Kotlin na 8080 (precisa do run:busca em outro terminal)"
+description = "Sobe a api Kotlin na 8080 (precisa do up e do run:busca)"
+env = { DB_URL = "jdbc:postgresql://localhost:5432/musi", DB_USER = "musi", DB_PASSWORD = "musi" }
 run = "./gradlew :api-ktor:run"
 
+# Em modo dev, sem URL de banco, o Quarkus sobe um PostgreSQL proprio (Dev Services).
 [tasks."run:api-quarkus"]
-description = "Sobe a api Java na 8081, em modo dev com hot reload"
+description = "Sobe a api Java na 8081, em modo dev com hot reload e banco do Dev Services"
 dir = "api-quarkus"
 run = "mvn -B -ntp quarkus:dev -Dquarkus.http.port=8081"
 
@@ -147,7 +169,7 @@ fi
 [tasks.demo]
 description = "Uma busca de exemplo contra a api local"
 run = """
-curl -s "localhost:8080/obras?dimensao=ritmo&valor=baiao" | python -m json.tool
+curl -s "localhost:8080/busca?dimensao=ritmo&valor=baiao" | python -m json.tool
 """
 
 # ---------------------------------------------------------------------------

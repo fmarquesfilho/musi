@@ -1,20 +1,27 @@
 # MUSI — APIs locais. Requisições para `docker compose up`.
 #
+# /busca é a busca, delegada ao serviço Go. /obras é o CRUD, no PostgreSQL, com as
+# anotações em /obras/{id}/anotacoes (ADR-0004).
+#
 # Abre e roda direto no IntelliJ IDEA / Android Studio (HTTP Client) e no
 # VS Code com a extensão REST Client. Clique em "Run" acima de cada requisição.
 
 @ktor = http://localhost:8080
 @quarkus = http://localhost:8081
 @busca = http://localhost:9090
+# As requisições que alteram ou removem uma obra usam este id: rode "criar obra" e
+# cole aqui o que vier no cabeçalho Location. As leituras usam a obra de exemplo obra-03.
+@obraId = cole-o-id-que-o-Location-devolveu
+@anotacaoId = 1
 
 ### Ktor — health
 GET {{ktor}}/health
 
 ### Ktor — busca simples por faceta
-GET {{ktor}}/obras?dimensao=ritmo&valor=baiao
+GET {{ktor}}/busca?dimensao=ritmo&valor=baiao
 
 ### Ktor — busca composta (árvore de filtro)
-POST {{ktor}}/obras
+POST {{ktor}}/busca
 Content-Type: application/json
 
 {
@@ -27,6 +34,73 @@ Content-Type: application/json
     { "tipo": "ate", "ano": 1970 }
   ]
 }
+
+### Ktor — listar obras (paginado, ordenado por ano)
+GET {{ktor}}/obras?pagina=0&tamanho=20&ordem=ano-crescente
+
+### Ktor — listar obras que têm uma faceta
+GET {{ktor}}/obras?dimensao=ritmo&valor=baiao
+
+### Ktor — criar obra (201, com Location)
+POST {{ktor}}/obras
+Content-Type: application/json
+
+{
+  "titulo": "Expresso 2222",
+  "artista": "Gilberto Gil",
+  "ano": 1972,
+  "facetas": [
+    { "dimensao": "genero", "valor": "mpb" },
+    { "dimensao": "ritmo", "valor": "baiao" }
+  ]
+}
+
+### Ktor — buscar obra pelo id
+GET {{ktor}}/obras/obra-03
+
+### Ktor — substituir obra (defina @obraId)
+PUT {{ktor}}/obras/{{obraId}}
+Content-Type: application/json
+
+{
+  "titulo": "Asa Branca",
+  "artista": "Luiz Gonzaga",
+  "ano": 1947,
+  "facetas": [ { "dimensao": "ritmo", "valor": "baiao" } ]
+}
+
+### Ktor — anotar uma obra (201, assinada por curador)
+POST {{ktor}}/obras/obra-03/anotacoes
+Content-Type: application/json
+
+{
+  "faceta": { "dimensao": "ritmo", "valor": "xote" },
+  "curador": "ana"
+}
+
+### Ktor — anotações da obra (rota aninhada, paginada)
+GET {{ktor}}/obras/obra-03/anotacoes
+
+### Ktor — substituir anotação (troque o id pelo que o Location devolveu)
+PUT {{ktor}}/obras/obra-03/anotacoes/{{anotacaoId}}
+Content-Type: application/json
+
+{
+  "faceta": { "dimensao": "ritmo", "valor": "baiao" },
+  "curador": "ana"
+}
+
+### Ktor — remover anotação (204)
+DELETE {{ktor}}/obras/obra-03/anotacoes/{{anotacaoId}}
+
+### Ktor — remover obra (defina @obraId; leva as anotações junto)
+DELETE {{ktor}}/obras/{{obraId}}
+
+### Ktor — obra inválida (422 em application/problem+json)
+POST {{ktor}}/obras
+Content-Type: application/json
+
+{ "titulo": "", "artista": "Gil", "ano": 1500 }
 
 ### Ktor — OpenAPI (spec gerado)
 GET {{ktor}}/openapi.json
@@ -35,10 +109,10 @@ GET {{ktor}}/openapi.json
 GET {{quarkus}}/q/health
 
 ### Quarkus — busca simples por faceta
-GET {{quarkus}}/obras?dimensao=ritmo&valor=baiao
+GET {{quarkus}}/busca?dimensao=ritmo&valor=baiao
 
 ### Quarkus — busca composta (árvore de filtro)
-POST {{quarkus}}/obras
+POST {{quarkus}}/busca
 Content-Type: application/json
 
 {
@@ -51,6 +125,73 @@ Content-Type: application/json
     { "tipo": "ate", "ano": 1970 }
   ]
 }
+
+### Quarkus — listar obras (paginado, ordenado por ano)
+GET {{quarkus}}/obras?pagina=0&tamanho=20&ordem=ano-crescente
+
+### Quarkus — listar obras que têm uma faceta
+GET {{quarkus}}/obras?dimensao=ritmo&valor=baiao
+
+### Quarkus — criar obra (201, com Location)
+POST {{quarkus}}/obras
+Content-Type: application/json
+
+{
+  "titulo": "Expresso 2222",
+  "artista": "Gilberto Gil",
+  "ano": 1972,
+  "facetas": [
+    { "dimensao": "genero", "valor": "mpb" },
+    { "dimensao": "ritmo", "valor": "baiao" }
+  ]
+}
+
+### Quarkus — buscar obra pelo id
+GET {{quarkus}}/obras/obra-03
+
+### Quarkus — substituir obra (defina @obraId)
+PUT {{quarkus}}/obras/{{obraId}}
+Content-Type: application/json
+
+{
+  "titulo": "Asa Branca",
+  "artista": "Luiz Gonzaga",
+  "ano": 1947,
+  "facetas": [ { "dimensao": "ritmo", "valor": "baiao" } ]
+}
+
+### Quarkus — anotar uma obra (201, assinada por curador)
+POST {{quarkus}}/obras/obra-03/anotacoes
+Content-Type: application/json
+
+{
+  "faceta": { "dimensao": "ritmo", "valor": "xote" },
+  "curador": "ana"
+}
+
+### Quarkus — anotações da obra (rota aninhada, paginada)
+GET {{quarkus}}/obras/obra-03/anotacoes
+
+### Quarkus — substituir anotação (troque o id pelo que o Location devolveu)
+PUT {{quarkus}}/obras/obra-03/anotacoes/{{anotacaoId}}
+Content-Type: application/json
+
+{
+  "faceta": { "dimensao": "ritmo", "valor": "baiao" },
+  "curador": "ana"
+}
+
+### Quarkus — remover anotação (204)
+DELETE {{quarkus}}/obras/obra-03/anotacoes/{{anotacaoId}}
+
+### Quarkus — remover obra (defina @obraId; leva as anotações junto)
+DELETE {{quarkus}}/obras/{{obraId}}
+
+### Quarkus — obra inválida (422 em application/problem+json)
+POST {{quarkus}}/obras
+Content-Type: application/json
+
+{ "titulo": "", "artista": "Gil", "ano": 1500 }
 
 ### Quarkus — OpenAPI (spec)
 GET {{quarkus}}/q/openapi

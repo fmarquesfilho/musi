@@ -1,0 +1,16 @@
+meta {
+  name: Listar obras com a faceta
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{ktor}}/obras?dimensao=ritmo&valor=baiao
+  body: none
+  auth: none
+}
+
+params:query {
+  dimensao: ritmo
+  valor: baiao
+}

@@ -1,13 +1,32 @@
 {
   "info": {
     "name": "MUSI — APIs locais",
-    "description": "Coleção para testar as APIs do MUSI rodando localmente via `docker compose up`.\n\nBases (variáveis da coleção):\n- ktor    → http://localhost:8080  (Kotlin/Ktor)\n- quarkus → http://localhost:8081  (Java/Quarkus)\n- busca   → http://localhost:9090  (serviço Go)\n\nFormato v2.1 — importável em Postman, Insomnia, Hoppscotch e Bruno.\nAlternativa: importe direto o OpenAPI em {{ktor}}/openapi.json ou {{quarkus}}/q/openapi.",
+    "description": "Coleção para testar as APIs do MUSI rodando localmente via `docker compose up`.\n\nBases (variáveis da coleção):\n- ktor    → http://localhost:8080  (Kotlin/Ktor)\n- quarkus → http://localhost:8081  (Java/Quarkus)\n- busca   → http://localhost:9090  (serviço Go)\n\nFormato v2.1 — importável em Postman, Insomnia, Hoppscotch e Bruno.\nA busca (delegada ao serviço Go) fica em /busca; /obras é o CRUD, com as anotações em /obras/{id}/anotacoes. As leituras usam a obra de exemplo obra-03. As que alteram ou removem uma obra usam a variável obraId: rode 'Criar obra' e cole nela o id do cabeçalho Location — assim o acervo de exemplo continua de pé para as duas APIs, que compartilham o mesmo banco.\n\nAlternativa: importe direto o OpenAPI em {{ktor}}/openapi.json ou {{quarkus}}/q/openapi.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "ktor", "value": "http://localhost:8080" },
-    { "key": "quarkus", "value": "http://localhost:8081" },
-    { "key": "busca", "value": "http://localhost:9090" }
+    {
+      "key": "ktor",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "quarkus",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "busca",
+      "value": "http://localhost:9090"
+    },
+    {
+      "key": "obraId",
+      "value": "cole-o-id-que-o-Location-devolveu",
+      "description": "Id usado pelas requisições que alteram ou removem uma obra. Copie do cabeçalho Location de 'Criar obra'."
+    },
+    {
+      "key": "anotacaoId",
+      "value": "1",
+      "description": "Id da anotação usada em buscar/substituir/remover. Copie do Location de 'Anotar obra'."
+    }
   ],
   "item": [
     {
@@ -18,7 +37,15 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{ktor}}/health", "host": ["{{ktor}}"], "path": ["health"] }
+            "url": {
+              "raw": "{{ktor}}/health",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
           }
         },
         {
@@ -27,12 +54,22 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{ktor}}/obras?dimensao=ritmo&valor=baiao",
-              "host": ["{{ktor}}"],
-              "path": ["obras"],
+              "raw": "{{ktor}}/busca?dimensao=ritmo&valor=baiao",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "busca"
+              ],
               "query": [
-                { "key": "dimensao", "value": "ritmo" },
-                { "key": "valor", "value": "baiao" }
+                {
+                  "key": "dimensao",
+                  "value": "ritmo"
+                },
+                {
+                  "key": "valor",
+                  "value": "baiao"
+                }
               ]
             }
           }
@@ -41,13 +78,354 @@
           "name": "Busca composta (arvore de filtro)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"tipo\": \"e\",\n  \"exigencias\": [\n    { \"tipo\": \"ou\", \"opcoes\": [\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"mpb\" },\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"forro\" }\n    ]},\n    { \"tipo\": \"ate\", \"ano\": 1970 }\n  ]\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "url": { "raw": "{{ktor}}/obras", "host": ["{{ktor}}"], "path": ["obras"] }
+            "url": {
+              "raw": "{{ktor}}/busca",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "busca"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar obras (pagina 0, por ano)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ktor}}/obras?pagina=0&tamanho=20&ordem=ano-crescente",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "0"
+                },
+                {
+                  "key": "tamanho",
+                  "value": "20"
+                },
+                {
+                  "key": "ordem",
+                  "value": "ano-crescente"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar obras — filtro por faceta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ktor}}/obras?dimensao=ritmo&valor=baiao",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras"
+              ],
+              "query": [
+                {
+                  "key": "dimensao",
+                  "value": "ritmo"
+                },
+                {
+                  "key": "valor",
+                  "value": "baiao"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar obras — filtro por artista",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ktor}}/obras?artista=gil",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras"
+              ],
+              "query": [
+                {
+                  "key": "artista",
+                  "value": "gil"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar obra (201 + Location)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Expresso 2222\",\n  \"artista\": \"Gilberto Gil\",\n  \"ano\": 1972,\n  \"facetas\": [\n    { \"dimensao\": \"genero\", \"valor\": \"mpb\" },\n    { \"dimensao\": \"ritmo\", \"valor\": \"baiao\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{ktor}}/obras",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar obra pelo id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ktor}}/obras/obra-03",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Substituir obra (defina obraId)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Expresso 2222\",\n  \"artista\": \"Gilberto Gil\",\n  \"ano\": 1972,\n  \"facetas\": [\n    { \"dimensao\": \"genero\", \"valor\": \"mpb\" },\n    { \"dimensao\": \"ritmo\", \"valor\": \"baiao\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{ktor}}/obras/{{obraId}}",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras",
+                "{{obraId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Anotar obra (201 + Location)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"faceta\": { \"dimensao\": \"ritmo\", \"valor\": \"xote\" },\n  \"curador\": \"ana\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{ktor}}/obras/obra-03/anotacoes",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03",
+                "anotacoes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar anotacoes da obra",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ktor}}/obras/obra-03/anotacoes",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03",
+                "anotacoes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar anotacao",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ktor}}/obras/obra-03/anotacoes/{{anotacaoId}}",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03",
+                "anotacoes",
+                "{{anotacaoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Substituir anotacao",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"faceta\": { \"dimensao\": \"ritmo\", \"valor\": \"xote\" },\n  \"curador\": \"ana\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{ktor}}/obras/obra-03/anotacoes/{{anotacaoId}}",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03",
+                "anotacoes",
+                "{{anotacaoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remover anotacao (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{ktor}}/obras/obra-03/anotacoes/{{anotacaoId}}",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03",
+                "anotacoes",
+                "{{anotacaoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remover obra (defina obraId)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{ktor}}/obras/{{obraId}}",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras",
+                "{{obraId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obra invalida (422, problem+json)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"\",\n  \"artista\": \"Gil\",\n  \"ano\": 1500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{ktor}}/obras",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "obras"
+              ]
+            }
           }
         },
         {
@@ -55,7 +433,15 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{ktor}}/openapi.json", "host": ["{{ktor}}"], "path": ["openapi.json"] }
+            "url": {
+              "raw": "{{ktor}}/openapi.json",
+              "host": [
+                "{{ktor}}"
+              ],
+              "path": [
+                "openapi.json"
+              ]
+            }
           }
         }
       ]
@@ -68,7 +454,16 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{quarkus}}/q/health", "host": ["{{quarkus}}"], "path": ["q", "health"] }
+            "url": {
+              "raw": "{{quarkus}}/q/health",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "q",
+                "health"
+              ]
+            }
           }
         },
         {
@@ -77,12 +472,22 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{quarkus}}/obras?dimensao=ritmo&valor=baiao",
-              "host": ["{{quarkus}}"],
-              "path": ["obras"],
+              "raw": "{{quarkus}}/busca?dimensao=ritmo&valor=baiao",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "busca"
+              ],
               "query": [
-                { "key": "dimensao", "value": "ritmo" },
-                { "key": "valor", "value": "baiao" }
+                {
+                  "key": "dimensao",
+                  "value": "ritmo"
+                },
+                {
+                  "key": "valor",
+                  "value": "baiao"
+                }
               ]
             }
           }
@@ -91,13 +496,354 @@
           "name": "Busca composta (arvore de filtro)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"tipo\": \"e\",\n  \"exigencias\": [\n    { \"tipo\": \"ou\", \"opcoes\": [\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"mpb\" },\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"forro\" }\n    ]},\n    { \"tipo\": \"ate\", \"ano\": 1970 }\n  ]\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "url": { "raw": "{{quarkus}}/obras", "host": ["{{quarkus}}"], "path": ["obras"] }
+            "url": {
+              "raw": "{{quarkus}}/busca",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "busca"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar obras (pagina 0, por ano)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{quarkus}}/obras?pagina=0&tamanho=20&ordem=ano-crescente",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "0"
+                },
+                {
+                  "key": "tamanho",
+                  "value": "20"
+                },
+                {
+                  "key": "ordem",
+                  "value": "ano-crescente"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar obras — filtro por faceta",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{quarkus}}/obras?dimensao=ritmo&valor=baiao",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras"
+              ],
+              "query": [
+                {
+                  "key": "dimensao",
+                  "value": "ritmo"
+                },
+                {
+                  "key": "valor",
+                  "value": "baiao"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar obras — filtro por artista",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{quarkus}}/obras?artista=gil",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras"
+              ],
+              "query": [
+                {
+                  "key": "artista",
+                  "value": "gil"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar obra (201 + Location)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Expresso 2222\",\n  \"artista\": \"Gilberto Gil\",\n  \"ano\": 1972,\n  \"facetas\": [\n    { \"dimensao\": \"genero\", \"valor\": \"mpb\" },\n    { \"dimensao\": \"ritmo\", \"valor\": \"baiao\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{quarkus}}/obras",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar obra pelo id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{quarkus}}/obras/obra-03",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Substituir obra (defina obraId)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Expresso 2222\",\n  \"artista\": \"Gilberto Gil\",\n  \"ano\": 1972,\n  \"facetas\": [\n    { \"dimensao\": \"genero\", \"valor\": \"mpb\" },\n    { \"dimensao\": \"ritmo\", \"valor\": \"baiao\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{quarkus}}/obras/{{obraId}}",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras",
+                "{{obraId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Anotar obra (201 + Location)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"faceta\": { \"dimensao\": \"ritmo\", \"valor\": \"xote\" },\n  \"curador\": \"ana\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{quarkus}}/obras/obra-03/anotacoes",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03",
+                "anotacoes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar anotacoes da obra",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{quarkus}}/obras/obra-03/anotacoes",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03",
+                "anotacoes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar anotacao",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{quarkus}}/obras/obra-03/anotacoes/{{anotacaoId}}",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03",
+                "anotacoes",
+                "{{anotacaoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Substituir anotacao",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"faceta\": { \"dimensao\": \"ritmo\", \"valor\": \"xote\" },\n  \"curador\": \"ana\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{quarkus}}/obras/obra-03/anotacoes/{{anotacaoId}}",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03",
+                "anotacoes",
+                "{{anotacaoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remover anotacao (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{quarkus}}/obras/obra-03/anotacoes/{{anotacaoId}}",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras",
+                "obra-03",
+                "anotacoes",
+                "{{anotacaoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remover obra (defina obraId)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{quarkus}}/obras/{{obraId}}",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras",
+                "{{obraId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obra invalida (422, problem+json)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"\",\n  \"artista\": \"Gil\",\n  \"ano\": 1500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{quarkus}}/obras",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "obras"
+              ]
+            }
           }
         },
         {
@@ -105,7 +851,16 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{quarkus}}/q/openapi", "host": ["{{quarkus}}"], "path": ["q", "openapi"] }
+            "url": {
+              "raw": "{{quarkus}}/q/openapi",
+              "host": [
+                "{{quarkus}}"
+              ],
+              "path": [
+                "q",
+                "openapi"
+              ]
+            }
           }
         }
       ]
@@ -118,33 +873,75 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{busca}}/health", "host": ["{{busca}}"], "path": ["health"] }
+            "url": {
+              "raw": "{{busca}}/health",
+              "host": [
+                "{{busca}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
           }
         },
         {
           "name": "Buscar — faceta simples",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{ \"tipo\": \"tem\", \"dimensao\": \"ritmo\", \"valor\": \"baiao\" }",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "url": { "raw": "{{busca}}/buscar", "host": ["{{busca}}"], "path": ["buscar"] }
+            "url": {
+              "raw": "{{busca}}/buscar",
+              "host": [
+                "{{busca}}"
+              ],
+              "path": [
+                "buscar"
+              ]
+            }
           }
         },
         {
           "name": "Buscar — arvore composta",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"tipo\": \"e\",\n  \"exigencias\": [\n    { \"tipo\": \"ou\", \"opcoes\": [\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"mpb\" },\n      { \"tipo\": \"tem\", \"dimensao\": \"genero\", \"valor\": \"forro\" }\n    ]},\n    { \"tipo\": \"ate\", \"ano\": 1970 }\n  ]\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "url": { "raw": "{{busca}}/buscar", "host": ["{{busca}}"], "path": ["buscar"] }
+            "url": {
+              "raw": "{{busca}}/buscar",
+              "host": [
+                "{{busca}}"
+              ],
+              "path": [
+                "buscar"
+              ]
+            }
           }
         }
       ]

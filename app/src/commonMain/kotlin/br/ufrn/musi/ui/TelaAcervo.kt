@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import br.ufrn.musi.dominio.*
@@ -27,6 +29,7 @@ fun TelaAcervo(
     obras: List<Obra>,
     filtro: Filtro?,
     aoTrocarFiltro: (Filtro?) -> Unit,
+    aoAbrir: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val visiveis = remember(obras, filtro) {
@@ -35,7 +38,12 @@ fun TelaAcervo(
 
     Column(modifier.fillMaxSize().padding(16.dp)) {
 
-        Text("Acervo", style = MaterialTheme.typography.headlineSmall)
+        // heading(): o leitor de tela anuncia como título e permite pular entre títulos.
+        Text(
+            "Acervo",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.semantics { heading() },
+        )
 
         Spacer(Modifier.height(4.dp))
 
@@ -63,7 +71,7 @@ fun TelaAcervo(
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(visiveis, key = { it.id }) { obra ->
-                    CartaoObra(obra)
+                    CartaoObra(obra, aoAbrir = { aoAbrir(obra.id) })
                 }
             }
         }
@@ -74,15 +82,18 @@ fun TelaAcervo(
  * COMPONENTE PRÓPRIO E REUTILIZÁVEL — o que a rubrica pede.
  *
  * Não conhece a tela em que está, não guarda estado e não decide nada sobre o
- * acervo. Recebe uma obra e a desenha. Serve na lista, numa tela de detalhe ou numa
- * pré-visualização.
+ * acervo. Recebe uma obra e avisa quando foi tocado. Serve na lista, numa tela de detalhe
+ * ou numa pré-visualização.
  */
 @Composable
 fun CartaoObra(
     obra: Obra,
+    aoAbrir: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(modifier.fillMaxWidth()) {
+    // O cartão inteiro é o alvo de toque, e não um ícone pequeno: passa dos 48 dp que a
+    // acessibilidade pede, e o leitor de tela anuncia um elemento só, com o título dentro.
+    Card(onClick = aoAbrir, modifier = modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Text(obra.titulo, style = MaterialTheme.typography.titleMedium)
             Text(

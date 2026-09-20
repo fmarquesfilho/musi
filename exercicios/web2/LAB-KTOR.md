@@ -55,7 +55,7 @@ Comente a linha do `BuscarObras`:
 // single { BuscarObras(fonte = get()) }
 ```
 
-Rode `./gradlew :api:run` e peça `GET /obras?dimensao=ritmo&valor=baiao`.
+Rode `./gradlew :api-ktor:run` e peça `GET /busca?dimensao=ritmo&valor=baiao`.
 
 | O que aconteceu | Quando você descobriu |
 |---|---|
@@ -112,8 +112,8 @@ lado Go. Quantos ele aponta?
 Suba a api e observe os cabeçalhos:
 
 ```bash
-mise run run:api
-curl -si "localhost:8080/obras?dimensao=ritmo&valor=baiao" | head -20
+mise run run:api-ktor
+curl -si "localhost:8080/busca?dimensao=ritmo&valor=baiao" | head -20
 ```
 
 Em `Aplicacao.kt`, duas linhas produzem isso:

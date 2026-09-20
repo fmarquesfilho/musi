@@ -1,0 +1,23 @@
+meta {
+  name: Obra invalida (422)
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{quarkus}}/obras
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "titulo": "",
+    "artista": "Gil",
+    "ano": 1500
+  }
+}

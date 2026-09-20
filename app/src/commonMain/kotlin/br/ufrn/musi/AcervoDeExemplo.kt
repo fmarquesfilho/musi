@@ -12,9 +12,13 @@ import br.ufrn.musi.dominio.Obra
  * Dados inventados para o curso — ver ADR-0002.
  */
 val acervoDeExemplo = listOf(
+    // A única obra já conciliada com o MusicBrainz, como em contratos/exemplos/acervo.json
+    // e na migração V2 das APIs — ADR-0003.
     Obra("obra-01", "Ponteio", "Edu Lobo", 1967, listOf(
         Faceta("genero", "mpb"), Faceta("ritmo", "ponteio"),
-        Faceta("movimento", "festivais-da-cancao"))),
+        Faceta("movimento", "festivais-da-cancao")),
+        mbid = "11111111-1111-4111-8111-111111111111",
+        mbidComposicao = "22222222-2222-4222-8222-222222222222"),
     Obra("obra-02", "Beira Mar", "Gilberto Gil", 1969, listOf(
         Faceta("genero", "mpb"), Faceta("ritmo", "ijexa"),
         Faceta("movimento", "tropicalia"))),

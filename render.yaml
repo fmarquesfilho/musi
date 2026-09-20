@@ -19,7 +19,10 @@ services:
         sync: false          # ex.: https://musi-busca.onrender.com
       - key: JAVA_TOOL_OPTIONS
         value: "-Xmx300m -Xms150m"
-      - key: DATABASE_URL    # Sprint 2, string de conexao do Neon
+      # Sem banco ate a Sprint 3 (ADR-0004): sem DB_URL, o CRUD responde 503 e a
+      # busca funciona. Na Sprint 3 (Neon), a API le DB_URL (formato JDBC), DB_USER e
+      # DB_PASSWORD; ver docs/COMO-PUBLICAR.md.
+      - key: DATABASE_URL
         sync: false
 
   # -------------------------------------------------------------------------
@@ -39,6 +42,11 @@ services:
         sync: false
       - key: JAVA_TOOL_OPTIONS
         value: "-Xmx300m -Xms150m"
+      # Sem banco ate a Sprint 3 (ADR-0004). Sem isto, o Quarkus nao sobe: o datasource
+      # sem URL fica inativo, mas o Hibernate e o Flyway exigem um. Com "false", o CRUD
+      # responde 503 e a busca funciona. Na Sprint 3: remova e configure DB_URL.
+      - key: MUSI_COM_BANCO
+        value: "false"
       - key: DATABASE_URL
         sync: false
 

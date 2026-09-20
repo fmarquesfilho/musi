@@ -7,6 +7,10 @@ aqui, e nenhum define o modelo por conta própria.
 |---|---|---|
 | `obra.schema.json` | HTTP, entre app e API | DIM0524 · DIM0547 |
 
+A anotação (`Obra` 1:N `Anotação`, na Sprint 1) ainda não tem schema aqui: a forma dela está
+no OpenAPI das duas APIs, e um schema só entra quando houver exemplos para validar — é o que
+o `validar.py` faz com os arquivos desta pasta.
+
 | `exemplos/*.json` | Casos de teste comuns | Os três |
 | `musi/busca/v1/busca.proto` | Contrato gRPC — hospedado no BSR; **runtime na Sprint 2** | DIM0547 |
 

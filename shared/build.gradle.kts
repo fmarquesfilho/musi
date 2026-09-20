@@ -9,15 +9,24 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.android.kmp.library)   // o dominio tambem compila para Android
 }
 
 kotlin {
     jvmToolchain(libs.versions.java.get().toInt())
 
-    jvm()          // usado por :api e pelos testes rapidos de :app
+    jvm()          // usado por :api-ktor e pelos testes rapidos de :app
 
-    // Sprint 1: os alvos moveis.
-    // androidTarget()
+    // Sprint 1: o alvo Android. O MESMO Dominio.kt que a api usa vai no APK.
+    // `com.android.kotlin.multiplatform.library` e o plugin de biblioteca KMP do AGP:
+    // nao ha AndroidManifest nem recursos aqui, so codigo.
+    androidLibrary {
+        namespace = "br.ufrn.musi.dominio"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+    }
+
+    // Sprint 3: iOS.
     // listOf(iosX64(), iosArm64(), iosSimulatorArm64()).forEach {
     //     it.binaries.framework { baseName = "Shared" }
     // }

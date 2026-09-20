@@ -1,0 +1,22 @@
+meta {
+  name: Substituir anotacao
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{quarkus}}/obras/obra-03/anotacoes/{{anotacaoId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "faceta": { "dimensao": "ritmo", "valor": "xote" },
+    "curador": "ana"
+  }
+}

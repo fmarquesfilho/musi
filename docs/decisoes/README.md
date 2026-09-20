@@ -8,6 +8,7 @@ sistema faz, mas por que funciona assim e o que foi descartado.
 | [0001](0001-stacks-e-estrutura.md) | Monorepo, três linguagens, Java 25 por toolchain | Aceita |
 | [0002](0002-modelo-de-dominio.md) | Faceta extensível, filtro como árvore, sem ranking | Aceita |
 | [0003](0003-conciliacao-musicbrainz.md) | Conciliação com o MusicBrainz, fora do ciclo de leitura | Aceita |
+| [0004](0004-persistencia-postgresql-flyway.md) | PostgreSQL com Flyway, o mesmo esquema nas duas APIs | Aceita |
 
 ## Modelo
 
